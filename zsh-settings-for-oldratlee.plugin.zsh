@@ -1,6 +1,7 @@
 export MAVEN_OPTS="-Xmx512m -XX:MaxPermSize=128m"
 #export GRADLE_OPTS="-Xmx1024m -Xms256m -XX:MaxPermSize=512m"
 export SVN_EDITOR=vim
+export EDITOR=vim
 
 CLISP_DOC=/usr/local/Cellar/clisp/2.49/share/doc/clisp/doc
 
