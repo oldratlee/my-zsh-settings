@@ -126,7 +126,11 @@ alias gampf='git commit --amend --no-edit && git push -f'
 # JetBrains
 ###############################################################################
 alias idea='open -a /Applications/IntelliJ\ IDEA\ 15.app'
-alias ads='open -a /Applications/Android\ Studio.app'
-alias adsp='open -a /Applications/AndroidStudioPreview.app'
 alias pych='open -a /Applications/PyCharm.app'
 alias apcd='open -a /Applications/AppCode.app'
+alias cln='open -a /Applications/CLion.app'
+alias wbs='open -a /Applications/WebStorm.app'
+alias dtg='open -a /Applications/DataGrip.app'
+
+alias ads='open -a /Applications/Android\ Studio.app'
+alias adsp='open -a /Applications/AndroidStudioPreview.app'
