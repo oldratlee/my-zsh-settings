@@ -30,6 +30,7 @@ alias ll='ls -lh'
 alias tailf='tail -f'
 # alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=.idea'
 alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=build --exclude-dir=.idea --exclude=\*.ipr --exclude=\*.iml --exclude=\*.iws --exclude=\*.jar'
+export GREP_COLOR='07;31'
 alias diff=colordiff
 
 alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])"'
@@ -121,6 +122,7 @@ alias gam='git commit --amend'
 alias gamno='git commit --amend --no-edit'
 alias gpf='git push -f'
 alias gampf='git commit --amend --no-edit && git push -f'
+alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
 
 ###############################################################################
 # JetBrains
@@ -130,6 +132,7 @@ alias pych='open -a /Applications/PyCharm.app'
 alias apcd='open -a /Applications/AppCode.app'
 alias cln='open -a /Applications/CLion.app'
 alias wbs='open -a /Applications/WebStorm.app'
+alias phs='open -a /Applications/PhpStorm.app'
 alias dtg='open -a /Applications/DataGrip.app'
 
 alias ads='open -a /Applications/Android\ Studio.app'
