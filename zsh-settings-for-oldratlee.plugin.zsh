@@ -30,20 +30,38 @@ alias df='df -h'
 alias ll='ls -lh'
 alias tailf='tail -f'
 # alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=.idea'
-alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=build --exclude-dir=.idea --exclude=\*.ipr --exclude=\*.iml --exclude=\*.iws --exclude=\*.jar'
+alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=build --exclude-dir=_site --exclude-dir=.idea --exclude=\*.ipr --exclude=\*.iml --exclude=\*.iws --exclude=\*.jar'
 export GREP_COLOR='07;31'
+
 alias diff=colordiff
 
 alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])"'
 alias urldecode='python -c "import sys, urllib as ul; print ul.unquote_plus(sys.argv[1])"'
 
 alias cap='c ap'
+
 alias v=vim
+# http://stackoverflow.com/questions/14307086/tab-completion-for-aliased-sub-commands-in-zsh-alias-gco-git-checkout
+compdef v=vim
+alias vd=vimdiff
 alias vi=vim
 alias gv=gvim
+alias nv=nvim
+alias gvd=gvimdiff
+
+alias e=emacs
+# compdef e=emacs
+
 alias sl='open -a /Applications/Sublime\ Text\ 2.app'
 
 alias a='atom'
+alias t=tmux
+compdef t=tmux
+
+# adjust indent for space 4
+doctoc() {
+    command doctoc --notitle "$@" && sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
+}
 
 ###############################################################################
 # Python
@@ -107,24 +125,41 @@ alias sgrdm="jps -l | awk '\$2==\"org.gradle.launcher.daemon.bootstrap.GradleDae
 ###############################################################################
 # Git
 ###############################################################################
+compdef g=git
 alias ga.='git add .'
 alias ga..='git add ..'
-alias gdc='git diff --cached'
-alias grb='git rebase'
 alias gcoh='git checkout HEAD'
-alias grs='git reset'
-alias grsh='git reset HEAD'
-alias grshard='git reset --hard'
+
+alias gd > /dev/null && unalias gd
+function gd() {
+    git diff --color "$@" | diff-so-fancy | less --tabs=1,5 -iRFX
+}
+function gdc() {
+    git diff --cached --color "$@" | diff-so-fancy | less --tabs=1,5 -iRFX
+}
+
 alias gssi='git status -s --ignored'
 alias gsti='git status --ignored'
 alias glog5='glog -5'
 alias glg5='glg -5'
+
+alias grb='git rebase'
+alias grs='git reset'
+alias grsh='git reset HEAD'
+alias grshard='git reset --hard'
+
 alias gam='git commit --amend'
 alias gamno='git commit --amend --no-edit'
+
+alias ga.c='git add . && git commit'
+alias ga.m='git add . && git commit --amend'
+alias ga.mno='git add . && git commit --amend --no-edit'
+
 alias gpf='git push -f'
+alias ga.cp='git add . && git commit && git push'
+
 alias gampf='git commit --amend --no-edit && git push -f'
 alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
-
 ###############################################################################
 # JetBrains
 ###############################################################################
