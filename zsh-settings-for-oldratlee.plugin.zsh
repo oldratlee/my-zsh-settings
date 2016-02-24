@@ -52,8 +52,6 @@ alias gvd=gvimdiff
 alias e=emacs
 # compdef e=emacs
 
-alias sl='open -a /Applications/Sublime\ Text\ 2.app'
-
 alias a='atom'
 alias t=tmux
 compdef t=tmux
@@ -148,15 +146,15 @@ alias grs='git reset'
 alias grsh='git reset HEAD'
 alias grshard='git reset --hard'
 
-alias gam='git commit --amend'
+alias gam='git commit --amend -v'
 alias gamno='git commit --amend --no-edit'
 
-alias ga.c='git add . && git commit'
-alias ga.m='git add . && git commit --amend'
+alias ga.c='git add . && git commit -v'
+alias ga.m='git add . && git commit --amend -v'
 alias ga.mno='git add . && git commit --amend --no-edit'
 
 alias gpf='git push -f'
-alias ga.cp='git add . && git commit && git push'
+alias ga.cp='git add . && git commit -v && git push'
 
 alias gampf='git commit --amend --no-edit && git push -f'
 alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
