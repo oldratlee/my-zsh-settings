@@ -65,9 +65,37 @@ doctoc() {
 # Python
 ###############################################################################
 alias py='python'
+alias py2='python2'
 alias py3='python3'
 alias ipy='ipython'
+alias ipy2='ipython2'
 alias ipy3='ipython3'
+
+alias pip='pip --trusted-host pypi.douban.com'
+alias pip2='pip2 --trusted-host pypi.douban.com'
+alias pip3='pip3 --trusted-host pypi.douban.com'
+compdef pip=pip
+compdef pip2=pip
+compdef pip3=pip
+
+# use default virtualenv of python 2
+type deactivate > /dev/null && deactivate
+source /Users/jerry/.virtualenv/default/bin/activate
+# Python Virtaul Env
+pve() {
+    local venv_path=/Users/jerry/.virtualenv
+    echo "current VIRTUAL_ENV: $VIRTUAL_ENV"
+
+    echo "select python virtual env to activate:"
+    local venv
+    select venv in `find $venv_path -maxdepth 1 -mindepth 1 -type d`; do
+        [ -n "$venv" ] && {
+            [ -n "$VIRTUAL_ENV" ] && deactivate
+            source "$venv/bin/activate"
+            break
+        }
+    done
+}
 
 ###############################################################################
 # Prolog
