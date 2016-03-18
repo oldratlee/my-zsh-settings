@@ -15,7 +15,7 @@ fi
 # My Config
 ####################################
 
-export LESS="${LESS}i"
+export LESS="${LESS}iXF"
 
 ###############################################################################
 # Shell misc
@@ -162,6 +162,9 @@ function gd() {
 }
 function gdc() {
     git diff --cached --color "$@" | diff-so-fancy | less --tabs=1,5 -iRFX
+}
+function gdh() {
+    git diff --color HEAD "$@" | diff-so-fancy | less --tabs=1,5 -iRFX
 }
 
 alias gssi='git status -s --ignored'
