@@ -192,7 +192,7 @@ alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
 ###############################################################################
 # JetBrains
 ###############################################################################
-alias idea='open -a /Applications/IntelliJ\ IDEA\ 15.app'
+alias idea='open -a /Applications/IntelliJ\ IDEA.app'
 alias pych='open -a /Applications/PyCharm.app'
 alias apcd='open -a /Applications/AppCode.app'
 alias cln='open -a /Applications/CLion.app'
