@@ -1,22 +1,42 @@
+###############################################################################
+# Env settings
+###############################################################################
 export MAVEN_OPTS="-Xmx512m -XX:MaxPermSize=128m"
 #export GRADLE_OPTS="-Xmx1024m -Xms256m -XX:MaxPermSize=512m"
 export SVN_EDITOR=vim
 export EDITOR=vim
+export SHELL=/bin/bash
 export LANG=en_US.UTF-8
+export LESS="${LESS}iXF"
 
 CLISP_DOC=/usr/local/Cellar/clisp/2.49/share/doc/clisp/doc
 
+####################################
+# Imporvement
+####################################
 if brew list | grep coreutils > /dev/null ; then
     alias ls='ls -F --show-control-chars --color=auto'
     eval `gdircolors -b <(gdircolors --print-database)`
 fi
 
-####################################
-# My Config
-####################################
+# Use Ctrl-Z to switch back to Vim
+# https://sheerun.net/2014/03/21/how-to-boost-your-vim-productivity/
+fancy-ctrl-z () {
+  if [[ $#BUFFER -eq 0 ]]; then
+    BUFFER="fg"
+    zle accept-line
+  else
+    zle push-input
+    zle clear-screen
+  fi
+}
+zle -N fancy-ctrl-z
+bindkey '^Z' fancy-ctrl-z
 
-export LESS="${LESS}iXF"
-
+# how to make ctrl+p behave exactly like up arrow in zsh?
+# http://superuser.com/questions/583583/how-to-make-ctrlp-behave-exactly-like-up-arrow-in-zsh
+bindkey '^P' up-line-or-search
+bindkey '^N' down-line-or-search
 ###############################################################################
 # Shell misc
 ###############################################################################
@@ -55,6 +75,8 @@ alias e=emacs
 alias a='atom'
 alias t=tmux
 compdef t=tmux
+
+alias axel='axel -n8'
 
 # adjust indent for space 4
 doctoc() {
@@ -189,6 +211,7 @@ alias ga.cp='git add . && git commit -v && git push'
 
 alias gampf='git commit --amend --no-edit && git push -f'
 alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
+
 ###############################################################################
 # JetBrains
 ###############################################################################
