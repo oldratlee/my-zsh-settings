@@ -5,19 +5,40 @@ export MAVEN_OPTS="-Xmx512m -XX:MaxPermSize=128m"
 #export GRADLE_OPTS="-Xmx1024m -Xms256m -XX:MaxPermSize=512m"
 export SVN_EDITOR=vim
 export EDITOR=vim
-export SHELL=/bin/bash
+#export SHELL=/bin/bash
 export LANG=en_US.UTF-8
 export LESS="${LESS}iXF"
 
 CLISP_DOC=/usr/local/Cellar/clisp/2.49/share/doc/clisp/doc
 
+
+switchJavaNetProxy() {
+    [ -z "$JAVA_OPTS_BEFORE_NET_PROXY"] && {
+        export JAVA_OPTS_BEFORE_NET_PROXY="$JAVA_OPTS"
+        export JAVA_OPTS="$JAVA_OPTS -DproxySet=true -DsocksProxyHost=127.0.0.1 -DsocksProxyPort=7070"
+        echo "turn ON java net proxy!"
+    }|| {
+        export JAVA_OPTS="$JAVA_OPTS_BEFORE_NET_PROXY"
+        unset JAVA_OPTS_BEFORE_NET_PROXY
+        echo "turn off java net proxy!"
+    }
+}
 ####################################
 # Imporvement
 ####################################
+
 if brew list | grep coreutils > /dev/null ; then
     alias ls='ls -F --show-control-chars --color=auto'
     eval `gdircolors -b <(gdircolors --print-database)`
 fi
+
+# Simple Search
+ss() {
+    local a
+    for a ; do
+        a2l **/*"$a"*
+    done
+}
 
 # Use Ctrl-Z to switch back to Vim
 # https://sheerun.net/2014/03/21/how-to-boost-your-vim-productivity/
@@ -37,6 +58,7 @@ bindkey '^Z' fancy-ctrl-z
 # http://superuser.com/questions/583583/how-to-make-ctrlp-behave-exactly-like-up-arrow-in-zsh
 bindkey '^P' up-line-or-search
 bindkey '^N' down-line-or-search
+
 ###############################################################################
 # Shell misc
 ###############################################################################
