@@ -87,6 +87,7 @@ alias v=vim
 compdef v=vim
 alias vd=vimdiff
 alias vi=vim
+compdef vi=vim
 alias gv=gvim
 alias nv=nvim
 alias gvd=gvimdiff
@@ -98,7 +99,10 @@ alias a='atom'
 alias t=tmux
 compdef t=tmux
 
+# speed up download
 alias axel='axel -n8'
+# reduce exit time of fpp
+alias fpp='SHELL=sh fpp'
 
 # adjust indent for space 4
 doctoc() {
