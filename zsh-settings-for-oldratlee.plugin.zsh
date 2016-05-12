@@ -23,6 +23,11 @@ switchJavaNetProxy() {
         echo "turn off java net proxy!"
     }
 }
+
+ads-jre-link2idea() {
+    (cd /Applications/Android*Studio.app/Contents && ln -s /Users/jerry/ProgFiles/idea-jre jre)
+}
+
 ####################################
 # Imporvement
 ####################################
@@ -250,4 +255,3 @@ alias phs='open -a /Applications/PhpStorm.app'
 alias dtg='open -a /Applications/DataGrip.app'
 
 alias ads='open -a /Applications/Android\ Studio.app'
-alias adsp='open -a /Applications/AndroidStudioPreview.app'
