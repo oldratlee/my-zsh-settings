@@ -243,6 +243,7 @@ alias ga.cp='git add . && git commit -v && git push'
 alias gampf='git commit --amend --no-edit && git push -f'
 alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
 
+alias gcn='git clone'
 ###############################################################################
 # JetBrains
 ###############################################################################
