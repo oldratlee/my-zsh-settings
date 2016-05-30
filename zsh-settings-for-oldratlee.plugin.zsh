@@ -45,7 +45,7 @@ ss() {
     done
 }
 
-# Use Ctrl-Z to switch back to Vim
+# Use Ctrl-Z to switch back to backgroud proccess(Vim)
 # https://sheerun.net/2014/03/21/how-to-boost-your-vim-productivity/
 fancy-ctrl-z () {
   if [[ $#BUFFER -eq 0 ]]; then
@@ -161,7 +161,7 @@ alias bp='/Users/jerry/ProgFiles/BProlog/bp'
 # Lisp
 ###############################################################################
 alias schm='rlwrap -p 1\;32 -r -c -f $HOME/.scheme_completion.rlwrap scheme'
-alias srepl='scala -nc -Dscala.color'
+alias scl='scala -Dscala.color -feature'
 
 ###############################################################################
 # Gradle
