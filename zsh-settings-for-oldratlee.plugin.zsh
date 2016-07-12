@@ -1,32 +1,12 @@
 ###############################################################################
 # Env settings
 ###############################################################################
-export MAVEN_OPTS="-Xmx512m -XX:MaxPermSize=128m"
-#export GRADLE_OPTS="-Xmx1024m -Xms256m -XX:MaxPermSize=512m"
 export SVN_EDITOR=vim
 export EDITOR=vim
 #export SHELL=/bin/bash
 export LANG=en_US.UTF-8
 export LESS="${LESS}iXF"
 
-CLISP_DOC=/usr/local/Cellar/clisp/2.49/share/doc/clisp/doc
-
-
-switchJavaNetProxy() {
-    [ -z "$JAVA_OPTS_BEFORE_NET_PROXY"] && {
-        export JAVA_OPTS_BEFORE_NET_PROXY="$JAVA_OPTS"
-        export JAVA_OPTS="$JAVA_OPTS -DproxySet=true -DsocksProxyHost=127.0.0.1 -DsocksProxyPort=7070"
-        echo "turn ON java net proxy!"
-    }|| {
-        export JAVA_OPTS="$JAVA_OPTS_BEFORE_NET_PROXY"
-        unset JAVA_OPTS_BEFORE_NET_PROXY
-        echo "turn off java net proxy!"
-    }
-}
-
-ads-jre-link2idea() {
-    (cd /Applications/Android*Studio.app/Contents && ln -s /Users/jerry/ProgFiles/idea-jre jre)
-}
 
 ####################################
 # Imporvement
@@ -36,14 +16,6 @@ if brew list | grep coreutils > /dev/null ; then
     alias ls='ls -F --show-control-chars --color=auto'
     eval `gdircolors -b <(gdircolors --print-database)`
 fi
-
-# Simple Search
-ss() {
-    local a
-    for a ; do
-        a2l **/*"$a"*
-    done
-}
 
 # Use Ctrl-Z to switch back to backgroud proccess(Vim)
 # https://sheerun.net/2014/03/21/how-to-boost-your-vim-productivity/
@@ -114,6 +86,31 @@ doctoc() {
     command doctoc --notitle "$@" && sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
 }
 
+####################################
+# Java
+####################################
+
+export MAVEN_OPTS="-Xmx512m"
+
+switchJavaNetProxy() {
+    [ -z "$JAVA_OPTS_BEFORE_NET_PROXY"] && {
+        export JAVA_OPTS_BEFORE_NET_PROXY="$JAVA_OPTS"
+        export JAVA_OPTS="$JAVA_OPTS -DproxySet=true -DsocksProxyHost=127.0.0.1 -DsocksProxyPort=7070"
+        echo "turn ON java net proxy!"
+    }|| {
+        export JAVA_OPTS="$JAVA_OPTS_BEFORE_NET_PROXY"
+        unset JAVA_OPTS_BEFORE_NET_PROXY
+        echo "turn off java net proxy!"
+    }
+}
+
+ads-jre-link2idea() {
+    (cd /Applications/Android*Studio.app/Contents && ln -s /Users/jerry/ProgFiles/idea-jre jre)
+}
+
+alias j7='export JAVA_HOME=$JAVA7_HOME'
+alias j8='export JAVA_HOME=$JAVA8_HOME'
+
 ###############################################################################
 # Python
 ###############################################################################
@@ -150,6 +147,17 @@ pve() {
     done
 }
 
+relink_virtualenv() {
+    (
+        cd /Users/jerry/.virtualenv
+        find -type l -xtype l -delete
+        local d
+        for d in *; do
+            virtualenv $d
+        done
+    )
+}
+
 ###############################################################################
 # Prolog
 ###############################################################################
@@ -160,12 +168,16 @@ alias bp='/Users/jerry/ProgFiles/BProlog/bp'
 ###############################################################################
 # Lisp
 ###############################################################################
+CLISP_DOC=/usr/local/Cellar/clisp/2.49/share/doc/clisp/doc
+
 alias schm='rlwrap -p 1\;32 -r -c -f $HOME/.scheme_completion.rlwrap scheme'
 alias scl='scala -Dscala.color -feature'
 
 ###############################################################################
 # Gradle
 ###############################################################################
+
+#export GRADLE_OPTS="-Xmx1024m -Xms256m -XX:MaxPermSize=512m"
 # --daemon
 alias grd='gradle'
 function grw() {
@@ -244,6 +256,20 @@ alias gampf='git commit --amend --no-edit && git push -f'
 alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
 
 alias gcn='git clone'
+alias gbb='git branch -a | sed "/->/b; s#remotes/origin/#remotes/origin => #"'
+alias gbT='git branch -a | sed "/\/tags\//d; /->/b; s#remotes/origin/#remotes/origin => #"'
+
+ghc() {
+    local url="$1"
+    echo "$url" | sed 's#^git@#http://#;s#\.git##; s#\.com:#\.com/#' | c
+}
+
+hgc() {
+    local url="$1"
+    echo "$url" | sed 's#^http://#git@#; s#$#\.git#; s#\.com/#\.com#' | c
+}
+
+
 ###############################################################################
 # JetBrains
 ###############################################################################
