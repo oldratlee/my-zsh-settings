@@ -44,15 +44,18 @@ alias d="dirs -v | head | tr '\t' ' ' | colines"
 alias wa='which -a'
 alias ta='type -a'
 alias o=open
+alias o.='open .'
+alias o..='open ..'
 alias du='du -h'
 alias df='df -h'
 alias ll='ls -lh'
 alias tailf='tail -f'
 # alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=.idea'
-alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=build --exclude-dir=_site --exclude-dir=.idea --exclude=\*.ipr --exclude=\*.iml --exclude=\*.iws --exclude=\*.jar'
+alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=build --exclude-dir=_site --exclude-dir=.idea --exclude-dir=taobao-tomcat --exclude=\*.ipr --exclude=\*.iml --exclude=\*.iws --exclude=\*.jar'
 export GREP_COLOR='07;31'
 
 alias diff=colordiff
+alias D=colordiff
 
 alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])"'
 alias urldecode='python -c "import sys, urllib as ul; print ul.unquote_plus(sys.argv[1])"'
@@ -73,6 +76,8 @@ alias e=emacs
 # compdef e=emacs
 
 alias a='atom'
+alias a.='atom .'
+alias a..='atom ..'
 alias t=tmux
 compdef t=tmux
 
@@ -80,9 +85,10 @@ compdef t=tmux
 alias axel='axel -n8'
 # reduce exit time of fpp
 alias fpp='SHELL=sh fpp'
+alias p='SHELL=sh fpp'
 
 # adjust indent for space 4
-doctoc() {
+toc() {
     command doctoc --notitle "$@" && sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
 }
 
@@ -260,15 +266,18 @@ alias gbb='git branch -a | sed "/->/b; s#remotes/origin/#remotes/origin => #"'
 alias gbT='git branch -a | sed "/\/tags\//d; /->/b; s#remotes/origin/#remotes/origin => #"'
 
 ghc() {
-    local url="$1"
-    echo "$url" | sed 's#^git@#http://#;s#\.git##; s#\.com:#\.com/#' | c
-}
+    local url="${1:-$(git remote get-url origin)}"
+    if [ -z "$url" ]; then
+        echo "No arguement and Not a git repository!"
+        return 1
+    fi
 
-hgc() {
-    local url="$1"
-    echo "$url" | sed 's#^http://#git@#; s#$#\.git#; s#\.com/#\.com#' | c
+    if [[ "$url" =~ '^http' ]]; then
+        echo "$url" | sed 's#^https?://#git@#; s#$#\.git#; s#(\.com|\.org)/#\1:#' -r | c
+    else
+        echo "$url" | sed 's#^git@#http://#; s#http://github.com#https://github.com#; s#\.git##; s#(\.com|\.org):#\1/#' -r | c
+    fi
 }
-
 
 ###############################################################################
 # JetBrains
