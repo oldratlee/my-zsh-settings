@@ -265,6 +265,10 @@ alias gcn='git clone'
 alias gbb='git branch -a | sed "/->/b; s#remotes/origin/#remotes/origin => #"'
 alias gbT='git branch -a | sed "/\/tags\//d; /->/b; s#remotes/origin/#remotes/origin => #"'
 
+# http://stackoverflow.com/questions/1419623/how-to-list-branches-that-contain-a-given-commit
+alias gbc='git branch --contains'
+alias gbrc='git branch -r --contains'
+
 ghc() {
     local url="${1:-$(git remote get-url origin)}"
     if [ -z "$url" ]; then
