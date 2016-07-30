@@ -262,8 +262,13 @@ alias gampf='git commit --amend --no-edit && git push -f'
 alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
 
 alias gcn='git clone'
-alias gbb='git branch -a | sed "/->/b; s#remotes/origin/#remotes/origin => #"'
-alias gbT='git branch -a | sed "/\/tags\//d; /->/b; s#remotes/origin/#remotes/origin => #"'
+
+gbb() {
+    git branch -a "$@" | sed "/->/b; s#remotes/origin/#remotes/origin => #"
+}
+gbT() {
+    git branch -a "$@" | sed "/\/tags\//d; /->/b; s#remotes/origin/#remotes/origin => #"
+}
 
 # http://stackoverflow.com/questions/1419623/how-to-list-branches-that-contain-a-given-commit
 alias gbc='git branch --contains'
