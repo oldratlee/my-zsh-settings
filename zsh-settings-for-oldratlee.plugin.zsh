@@ -87,6 +87,11 @@ alias axel='axel -n8'
 alias fpp='SHELL=sh fpp'
 alias p='SHELL=sh fpp'
 
+alias r2=rebar
+compdef r2=rebar
+alias r3=rebar3
+# compdef r3=rebar3
+
 # adjust indent for space 4
 toc() {
     command doctoc --notitle "$@" && sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
@@ -114,6 +119,7 @@ ads-jre-link2idea() {
     (cd /Applications/Android*Studio.app/Contents && ln -s /Users/jerry/ProgFiles/idea-jre jre)
 }
 
+alias j6='export JAVA_HOME=$JAVA6_HOME'
 alias j7='export JAVA_HOME=$JAVA7_HOME'
 alias j8='export JAVA_HOME=$JAVA8_HOME'
 
@@ -223,16 +229,29 @@ alias sgrdm="jps -l | awk '\$2==\"org.gradle.launcher.daemon.bootstrap.GradleDae
 # Git
 ###############################################################################
 compdef g=git
+
+alias gu='git up'
+
 alias ga.='git add .'
 alias ga..='git add ..'
 alias gcoh='git checkout HEAD'
 
-alias gd > /dev/null && unalias gd
-function gd() {
-    git diff --color "$@" | diff-so-fancy | less --tabs=1,5 -iRFX
-}
+# alias gd > /dev/null && unalias gd
 function gdc() {
     git diff --cached --color "$@" | diff-so-fancy | less --tabs=1,5 -iRFX
+}
+function gds() {
+    if [ $# -eq 0 ]; then
+        from=@
+        to=@^
+    elif [ $# -eq 1 ]; then
+        from="$1"
+        to="$1^"
+    else
+        from="$1"
+        to="$2"
+    fi
+    git diff --color "$from" "$to" | diff-so-fancy | less --tabs=1,5 -iRFX
 }
 function gdh() {
     git diff --color HEAD "$@" | diff-so-fancy | less --tabs=1,5 -iRFX
@@ -240,13 +259,12 @@ function gdh() {
 
 alias gssi='git status -s --ignored'
 alias gsti='git status --ignored'
-alias glog5='glog -5'
-alias glg5='glg -5'
+alias gg='glog -15'
+alias sg='open -a /Applications/SmartGit.app'
 
 alias grb='git rebase'
 alias grs='git reset'
-alias grsh='git reset HEAD'
-alias grshard='git reset --hard'
+alias grshd='git reset --hard'
 
 alias gam='git commit --amend -v'
 alias gamno='git commit --amend --no-edit'
@@ -263,16 +281,22 @@ alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
 
 alias gcn='git clone'
 
+## Branch
+
+alias gbd='git branch -d'
+alias gbD='git branch -D'
 gbb() {
     git branch -a "$@" | sed "/->/b; s#remotes/origin/#remotes/origin => #"
 }
 gbT() {
-    git branch -a "$@" | sed "/\/tags\//d; /->/b; s#remotes/origin/#remotes/origin => #"
+    git branch -a "$@" | sed "/->/b; \/tags\//d; /\/releases\//d; s#remotes/origin/#remotes/origin => #"
 }
 
 # http://stackoverflow.com/questions/1419623/how-to-list-branches-that-contain-a-given-commit
 alias gbc='git branch --contains'
 alias gbrc='git branch -r --contains'
+
+## URL
 
 ghc() {
     local url="${1:-$(git remote get-url origin)}"
