@@ -265,6 +265,7 @@ alias sg='open -a /Applications/SmartGit.app'
 alias grb='git rebase'
 alias grs='git reset'
 alias grshd='git reset --hard'
+alias grsorigin='git reset --hard origin/$(git_current_branch)'
 
 alias gam='git commit --amend -v'
 alias gamno='git commit --amend --no-edit'
