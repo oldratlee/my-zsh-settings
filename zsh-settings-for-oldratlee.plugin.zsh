@@ -1,6 +1,7 @@
 ###############################################################################
 # Env settings
 ###############################################################################
+
 export SVN_EDITOR=vim
 export EDITOR=vim
 #export SHELL=/bin/bash
@@ -8,9 +9,11 @@ export LANG=en_US.UTF-8
 export LESS="${LESS}iXF"
 
 
-####################################
-# Imporvement
-####################################
+###############################################################################
+# Shell Imporvement
+###############################################################################
+
+### shell settings ###
 
 if brew list | grep coreutils > /dev/null ; then
     alias ls='ls -F --show-control-chars --color=auto'
@@ -36,9 +39,8 @@ bindkey '^Z' fancy-ctrl-z
 bindkey '^P' up-line-or-search
 bindkey '^N' down-line-or-search
 
-###############################################################################
-# Shell misc
-###############################################################################
+### shell alias ###
+
 alias d="dirs -v | head | tr '\t' ' ' | colines"
 
 alias wa='which -a'
@@ -56,9 +58,6 @@ export GREP_COLOR='07;31'
 
 alias diff=colordiff
 alias D=colordiff
-
-alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])"'
-alias urldecode='python -c "import sys, urllib as ul; print ul.unquote_plus(sys.argv[1])"'
 
 alias cap='c ap'
 
@@ -87,19 +86,14 @@ alias axel='axel -n8'
 alias fpp='SHELL=sh fpp'
 alias p='SHELL=sh fpp'
 
-alias r2=rebar
-compdef r2=rebar
-alias r3=rebar3
-# compdef r3=rebar3
-
 # adjust indent for space 4
 toc() {
     command doctoc --notitle "$@" && sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
 }
 
-####################################
+###############################################################################
 # Java
-####################################
+###############################################################################
 
 export MAVEN_OPTS="-Xmx512m"
 
@@ -123,15 +117,46 @@ alias j6='export JAVA_HOME=$JAVA6_HOME'
 alias j7='export JAVA_HOME=$JAVA7_HOME'
 alias j8='export JAVA_HOME=$JAVA8_HOME'
 
+
+###############################################################################
+# Erlang
+###############################################################################
+
+alias r2=rebar
+compdef r2=rebar
+alias r3=rebar3
+# compdef r3=rebar3
+
+# Run erlang MFA(Module-Function-Args) conveniently
+erun() {
+    if [ $# -lt 2 ]; then
+        echo "Error: at least 2 args!"
+        return 1
+    fi
+    erl -s "$@" -s init stop -noshell
+}
+
+# Run erlang one-line script conveniently
+erline() {
+    if [ $# -ne 1 ]; then
+        echo "Error: Only need 1 arg!"
+        return 1
+    fi
+    erl -eval "$1" -s init stop -noshell
+}
+
 ###############################################################################
 # Python
 ###############################################################################
+
 alias py='python'
 alias py2='python2'
 alias py3='python3'
 alias ipy='ipython'
 alias ipy2='ipython2'
 alias ipy3='ipython3'
+
+ZSH_PIP_INDEXES='http://pypi.douban.com/simple/'
 
 alias pip='pip --trusted-host pypi.douban.com'
 alias pip2='pip2 --trusted-host pypi.douban.com'
@@ -180,6 +205,7 @@ alias bp='/Users/jerry/ProgFiles/BProlog/bp'
 ###############################################################################
 # Lisp
 ###############################################################################
+
 CLISP_DOC=/usr/local/Cellar/clisp/2.49/share/doc/clisp/doc
 
 alias schm='rlwrap -p 1\;32 -r -c -f $HOME/.scheme_completion.rlwrap scheme'
@@ -242,11 +268,11 @@ function gdc() {
 }
 function gds() {
     if [ $# -eq 0 ]; then
-        from=@
-        to=@^
+        from=@^
+        to=@
     elif [ $# -eq 1 ]; then
-        from="$1"
-        to="$1^"
+        from="$1^"
+        to="$1"
     else
         from="$1"
         to="$2"
