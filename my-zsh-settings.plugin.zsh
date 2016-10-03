@@ -117,6 +117,23 @@ alias j6='export JAVA_HOME=$JAVA6_HOME'
 alias j7='export JAVA_HOME=$JAVA7_HOME'
 alias j8='export JAVA_HOME=$JAVA8_HOME'
 
+## Maven
+
+alias mc='mvn clean'
+alias mi='mvn install -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked'
+alias mci='mvn clean && mvn install -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked'
+alias mds='mvn dependency:tree'
+alias mds='mvn dependency:sources'
+alias mcdeploy='mvn clean && mvn deploy -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release'
+
+muv() {
+    [ $# -ne 1 ] && {
+        echo "Only 1 argument for verson!"
+        exit 1
+    }
+    mvn org.codehaus.mojo:versions-maven-plugin:1.3.1:set -DgenerateBackupPoms=false -DnewVersion="$1"
+}
+
 
 ###############################################################################
 # Erlang
