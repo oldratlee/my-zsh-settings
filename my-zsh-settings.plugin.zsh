@@ -82,7 +82,9 @@ compdef t=tmux
 
 # speed up download
 alias axel='axel -n8'
-# reduce exit time of fpp
+
+## reduce exit time of fpp
+# fpp is an awesome toolkit: https://github.com/facebook/PathPicker
 alias fpp='SHELL=sh fpp'
 alias p='SHELL=sh fpp'
 
@@ -107,10 +109,6 @@ switchJavaNetProxy() {
         unset JAVA_OPTS_BEFORE_NET_PROXY
         echo "turn off java net proxy!"
     }
-}
-
-ads-jre-link2idea() {
-    (cd /Applications/Android*Studio.app/Contents && ln -s /Users/jerry/ProgFiles/idea-jre jre)
 }
 
 alias j6='export JAVA_HOME=$JAVA6_HOME'
@@ -184,10 +182,10 @@ compdef pip3=pip
 
 # use default virtualenv of python 2
 type deactivate > /dev/null && deactivate
-source /Users/jerry/.virtualenv/default/bin/activate
+source $HOME/.virtualenv/default/bin/activate
 # Python Virtaul Env
 pve() {
-    local venv_path=/Users/jerry/.virtualenv
+    local venv_path=$HOME/.virtualenv
     echo "current VIRTUAL_ENV: $VIRTUAL_ENV"
 
     echo "select python virtual env to activate:"
@@ -203,7 +201,7 @@ pve() {
 
 relink_virtualenv() {
     (
-        cd /Users/jerry/.virtualenv
+        cd $HOME/.virtualenv
         find -type l -xtype l -delete
         local d
         for d in *; do
@@ -215,9 +213,9 @@ relink_virtualenv() {
 ###############################################################################
 # Prolog
 ###############################################################################
-alias gpl='gprolog'
 alias sp='/Applications/SWI-Prolog.app/Contents/MacOS/swipl'
-alias bp='/Users/jerry/ProgFiles/BProlog/bp'
+alias gpl='gprolog'
+alias bp='$HOME/ProgFiles/BProlog/bp'
 
 ###############################################################################
 # Lisp
