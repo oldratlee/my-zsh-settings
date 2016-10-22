@@ -120,7 +120,7 @@ alias j8='export JAVA_HOME=$JAVA8_HOME'
 alias mc='mvn clean'
 alias mi='mvn install -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked'
 alias mci='mvn clean && mvn install -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked'
-alias mds='mvn dependency:tree'
+alias mdt='mvn dependency:tree'
 alias mds='mvn dependency:sources'
 alias mcdeploy='mvn clean && mvn deploy -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release'
 
@@ -332,7 +332,7 @@ gbb() {
     git branch -a "$@" | sed "/->/b; s#remotes/origin/#remotes/origin => #"
 }
 gbT() {
-    git branch -a "$@" | sed "/->/b; \/tags\//d; /\/releases\//d; s#remotes/origin/#remotes/origin => #"
+    git branch -a "$@" | sed -r "/->/b; /\/tags\//d; /\/releases\//d; /\/backups?\//d; s#remotes/origin/#remotes/origin => #"
 }
 
 # http://stackoverflow.com/questions/1419623/how-to-list-branches-that-contain-a-given-commit
@@ -349,9 +349,9 @@ ghc() {
     fi
 
     if [[ "$url" =~ '^http' ]]; then
-        echo "$url" | sed 's#^https?://#git@#; s#$#\.git#; s#(\.com|\.org)/#\1:#' -r | c
+        echo "$url" | sed 's#^https?://#git@#; s#(\.com|\.org)/#\1:#; s#(\.git)?$#\.git#' -r | c
     else
-        echo "$url" | sed 's#^git@#http://#; s#http://github.com#https://github.com#; s#\.git##; s#(\.com|\.org):#\1/#' -r | c
+        echo "$url" | sed 's#^git@#http://#; s#http://github.com#https://github.com#; s#(\.com|\.org):#\1/#; s#\.git$##' -r | c
     fi
 }
 
