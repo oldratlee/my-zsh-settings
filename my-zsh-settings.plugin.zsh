@@ -60,6 +60,13 @@ alias diff=colordiff
 alias D=colordiff
 
 alias cap='c ap'
+# print and copy full path of command bin
+capw() {
+    local arg
+    for arg; do
+        ap "$(which "$arg")" | c
+    done
+}
 
 alias v=vim
 # http://stackoverflow.com/questions/14307086/tab-completion-for-aliased-sub-commands-in-zsh-alias-gco-git-checkout
@@ -353,6 +360,20 @@ ghc() {
     else
         echo "$url" | sed 's#^git@#http://#; s#http://github.com#https://github.com#; s#(\.com|\.org):#\1/#; s#\.git$##' -r | c
     fi
+}
+
+http-repo-to-git-repo-recursively() {
+    local d
+    for d in `find -iname .git -type`; do
+        (
+            cd $d/..
+            local url=$(git remote get-url origin)
+            [[ "$url" =~ '^http'  ]] && {
+                gitUrl=$(ghc)
+                grset origin $gitUrl
+            }
+        )
+    done
 }
 
 ###############################################################################
