@@ -330,6 +330,7 @@ alias gampf='git commit --amend --no-edit && git push -f'
 alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
 
 alias gcn='git clone'
+alias gcnr='git clone --recurse-submodules'
 
 ## Branch
 
@@ -362,6 +363,7 @@ ghc() {
     fi
 }
 
+alias gbw='git browse'
 http-repo-to-git-repo-recursively() {
     local d
     for d in `find -iname .git -type`; do
