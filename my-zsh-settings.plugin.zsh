@@ -129,6 +129,7 @@ alias mi='mvn install -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=
 alias mci='mvn clean && mvn install -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked'
 alias mdt='mvn dependency:tree'
 alias mds='mvn dependency:sources'
+alias mcv='mvn versions:display-dependency-updates versions:display-plugin-updates versions:display-property-updates'
 alias mcdeploy='mvn clean && mvn deploy -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release'
 
 muv() {
