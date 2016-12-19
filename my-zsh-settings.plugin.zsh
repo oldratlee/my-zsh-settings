@@ -187,6 +187,12 @@ alias pip3='pip3 --trusted-host pypi.douban.com'
 compdef pip=pip
 compdef pip2=pip
 compdef pip3=pip
+pipup() {
+    pip list --outdated | awk 'NR>2{print $1}' | xargs pip install --upgrade
+}
+pip3up() {
+    pip3 list --outdated | awk 'NR>2{print $1}' | xargs pip3 install --upgrade
+}
 
 # use default virtualenv of python 2
 type deactivate > /dev/null && deactivate
