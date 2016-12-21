@@ -388,12 +388,26 @@ http-repo-to-git-repo-recursively() {
 ###############################################################################
 # JetBrains
 ###############################################################################
-alias idea='open -a /Applications/IntelliJ\ IDEA.app'
-alias pych='open -a /Applications/PyCharm.app'
-alias apcd='open -a /Applications/AppCode.app'
-alias cln='open -a /Applications/CLion.app'
+# JetBrains Toolbox: The right tool for the job — every time!
+# https://www.jetbrains.com/toolbox/
+JB_TOOL_HOME="$HOME/Library/Application Support/JetBrains/Toolbox/apps"
+
+#alias idea='open -a /Applications/IntelliJ\ IDEA.app'
+alias idea='open -a "$JB_TOOL_HOME"/IDEA-U/*/*/IntelliJ*.app'
+#alias pych='open -a /Applications/PyCharm.app'
+alias pych='open -a "$JB_TOOL_HOME"/PyCharm-P/*/*/PyCharm*.app'
+#alias apcd='open -a /Applications/AppCode.app'
+alias apcd='open -a "$JB_TOOL_HOME"/AppCode/*/*/AppCode*.app'
+
+#alias cln='open -a /Applications/CLion.app'
+alias cln='open -a "$JB_TOOL_HOME"/CLion/*/*/CLion*.app'
+
+alias rdr='open -a "$JB_TOOL_HOME"/Rider/*/*/Rider*.app'
+
+#alias dtg='open -a /Applications/DataGrip.app'
+alias dtg='open -a "$JB_TOOL_HOME"/datagrip/*/*/DataGrip*.app'
+
 alias wbs='open -a /Applications/WebStorm.app'
 alias phs='open -a /Applications/PhpStorm.app'
-alias dtg='open -a /Applications/DataGrip.app'
 
 alias ads='open -a /Applications/Android\ Studio.app'
