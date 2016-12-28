@@ -15,12 +15,17 @@ export LESS="${LESS}iXF"
 
 ### shell settings ###
 
+# set color theme of ls in terminal to GNU/Linux Style
 if brew list | grep coreutils > /dev/null ; then
     alias ls='ls -F --show-control-chars --color=auto'
     eval `gdircolors -b <(gdircolors --print-database)`
 fi
 
-# Use Ctrl-Z to switch back to backgroud proccess(Vim)
+# User configuration
+export MANPATH="/usr/local/opt/coreutils/libexec/gnuman:$MANPATH"
+#export MANPATH="$(find /usr/local/Cellar -maxdepth 4 -type d -name man | tr '\n' :)$MANPATH"
+
+# Use Ctrl-Z to switch back to backgroud proccess(eg: Vim)
 # https://sheerun.net/2014/03/21/how-to-boost-your-vim-productivity/
 fancy-ctrl-z () {
   if [[ $#BUFFER -eq 0 ]]; then
@@ -41,6 +46,7 @@ bindkey '^N' down-line-or-search
 
 ### shell alias ###
 
+# improve alias d of oh-my-zsh: colorful lines, near index number and dir name(more convenient for human eyes)
 alias d="dirs -v | head | tr '\t' ' ' | colines"
 
 alias wa='which -a'
@@ -52,6 +58,7 @@ alias du='du -h'
 alias df='df -h'
 alias ll='ls -lh'
 alias tailf='tail -f'
+
 # alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=.idea'
 alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=build --exclude-dir=_site --exclude-dir=.idea --exclude-dir=taobao-tomcat --exclude=\*.ipr --exclude=\*.iml --exclude=\*.iws --exclude=\*.jar --exclude-dir=Pods'
 export GREP_COLOR='07;31'
@@ -68,6 +75,7 @@ capw() {
     done
 }
 
+# alias shortcut, for most commonly used commands
 alias v=vim
 # http://stackoverflow.com/questions/14307086/tab-completion-for-aliased-sub-commands-in-zsh-alias-gco-git-checkout
 compdef v=vim
@@ -84,8 +92,14 @@ alias e=emacs
 alias a='atom'
 alias a.='atom .'
 alias a..='atom ..'
+
 alias t=tmux
 compdef t=tmux
+
+alias b=brew
+compdef b=brew
+
+alias sl=sloccount
 
 # speed up download
 alias axel='axel -n8'
