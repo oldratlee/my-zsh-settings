@@ -16,10 +16,12 @@ export LESS="${LESS}iXF"
 ### shell settings ###
 
 # set color theme of ls in terminal to GNU/Linux Style
-if brew list | grep coreutils > /dev/null ; then
-    alias ls='ls -F --show-control-chars --color=auto'
-    eval `gdircolors -b <(gdircolors --print-database)`
-fi
+# oh-my-zsh already set color theme correctly
+#
+#if brew list | grep coreutils > /dev/null ; then
+#    alias ls='ls -F --show-control-chars --color=auto'
+#    eval `gdircolors -b <(gdircolors --print-database)`
+#fi
 
 # User configuration
 export MANPATH="/usr/local/opt/coreutils/libexec/gnuman:$MANPATH"
