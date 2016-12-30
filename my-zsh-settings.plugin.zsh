@@ -368,7 +368,10 @@ gbb() {
     git branch -a "$@" | sed "/->/b; s#remotes/origin/#remotes/origin => #"
 }
 gbT() {
-    git branch -a "$@" | sed -r "/->/b; /\/tags\//d; /\/releases\//d; /\/backups?\//d; s#remotes/origin/#remotes/origin => #"
+    # http://stackoverflow.com/questions/5188320/how-can-i-get-a-list-of-git-branches-ordered-by-most-recent-commit
+    # --sort=-committerdate : sort branch by commit date in descending order
+    # --sort=committerdate : sort branch by commit date in ascending order
+    git branch -a --sort=committerdate "$@" | sed -r "/->/b; /\/tags\//d; /\/releases\//d; /\/backups?\//d; s#remotes/origin/#remotes/origin => #"
 }
 
 # http://stackoverflow.com/questions/1419623/how-to-list-branches-that-contain-a-given-commit
