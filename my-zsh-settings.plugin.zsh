@@ -49,8 +49,13 @@ bindkey '^N' down-line-or-search
 # improve alias d of oh-my-zsh: colorful lines, near index number and dir name(more convenient for human eyes)
 alias d="dirs -v | head | tr '\t' ' ' | colines"
 
-alias wa='which -a'
-alias ta='type -a'
+ta() {
+    echo "type -a:\n"
+    type -a "$@"
+    echo "\nwhich -a:\n"
+    which -a "$@"
+}
+
 alias o=open
 alias o.='open .'
 alias o..='open ..'
