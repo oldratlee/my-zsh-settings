@@ -71,7 +71,9 @@ alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-di
 export GREP_COLOR='07;31'
 
 alias diff=colordiff
-alias D=colordiff
+D() {
+    diff "$@" | diff-so-fancy | less --tabs=4 -RFX
+}
 
 alias cap='c ap'
 # print and copy full path of command bin
@@ -127,8 +129,8 @@ toc() {
 
 export MAVEN_OPTS="-Xmx512m"
 
-switchJavaNetProxy() {
-    [ -z "$JAVA_OPTS_BEFORE_NET_PROXY"] && {
+swJavaNetProxy() {
+    [ -z "${JAVA_OPTS_BEFORE_NET_PROXY+if_undefined_will_output}" ] && {
         export JAVA_OPTS_BEFORE_NET_PROXY="$JAVA_OPTS"
         export JAVA_OPTS="$JAVA_OPTS -DproxySet=true -DsocksProxyHost=127.0.0.1 -DsocksProxyPort=7070"
         echo "turn ON java net proxy!"
@@ -427,6 +429,7 @@ alias apcd='open -a "$JB_TOOL_HOME"/AppCode/*/*/AppCode*.app'
 alias cln='open -a "$JB_TOOL_HOME"/CLion/*/*/CLion*.app'
 
 alias rdr='open -a "$JB_TOOL_HOME"/Rider/*/*/Rider*.app'
+alias mps='open -a "$JB_TOOL_HOME"/MPS/*/*/MPS*.app'
 
 #alias dtg='open -a /Applications/DataGrip.app'
 alias dtg='open -a "$JB_TOOL_HOME"/datagrip/*/*/DataGrip*.app'
