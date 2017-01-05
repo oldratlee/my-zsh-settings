@@ -395,14 +395,15 @@ ghc() {
 }
 
 alias gbw='git browse'
-http-repo-to-git-repo-recursively() {
+change-git-repo-addr-to-git-recursively() {
     local d
-    for d in `find -iname .git -type`; do
+    for d in `find -iname .git -type d`; do
         (
             cd $d/..
             local url=$(git remote get-url origin)
             [[ "$url" =~ '^http'  ]] && {
                 gitUrl=$(ghc)
+                echo "$PWD : change $url to $gitUrl"
                 grset origin $gitUrl
             }
         )
