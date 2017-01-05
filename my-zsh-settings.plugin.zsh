@@ -329,11 +329,9 @@ function gds() {
         from="$1"
         to="$2"
     fi
-    git diff --color "$from" "$to" | diff-so-fancy | less --tabs=1,5 -iRFX
+    git diff "$from" "$to"
 }
-function gdh() {
-    git diff --color HEAD "$@" | diff-so-fancy | less --tabs=1,5 -iRFX
-}
+alias gdh='git diff HEAD'
 alias gdorigin='git diff origin/$(git_current_branch)'
 
 alias gssi='git status -s --ignored'
