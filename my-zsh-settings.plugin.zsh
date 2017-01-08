@@ -377,10 +377,12 @@ gbT() {
 # http://stackoverflow.com/questions/1419623/how-to-list-branches-that-contain-a-given-commit
 alias gbc='git branch --contains'
 alias gbrc='git branch -r --contains'
+alias gbw='git browse'
 
 ## URL
 
-ghc() {
+# change git repo addr http addr
+cgh() {
     local url="${1:-$(git remote get-url origin)}"
     if [ -z "$url" ]; then
         echo "No arguement and Not a git repository!"
@@ -393,16 +395,15 @@ ghc() {
         echo "$url" | sed 's#^git@#http://#; s#http://github.com#https://github.com#; s#(\.com|\.org):#\1/#; s#\.git$##' -r | c
     fi
 }
-
-alias gbw='git browse'
-change-git-repo-addr-to-git-recursively() {
+# change git repo addr http addr recursively
+cghr() {
     local d
     for d in `find -iname .git -type d`; do
         (
             cd $d/..
             local url=$(git remote get-url origin)
             [[ "$url" =~ '^http'  ]] && {
-                gitUrl=$(ghc)
+                gitUrl=$(cgh)
                 echo "$PWD : change $url to $gitUrl"
                 grset origin $gitUrl
             }
