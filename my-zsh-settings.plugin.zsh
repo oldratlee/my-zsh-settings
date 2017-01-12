@@ -111,7 +111,8 @@ compdef b=brew
 alias sl=sloccount
 
 # speed up download
-alias axel='axel -n8'
+alias ax='axel -n8'
+alias axl='axel -n16'
 
 ## reduce exit time of fpp
 # fpp is an awesome toolkit: https://github.com/facebook/PathPicker
@@ -309,6 +310,31 @@ alias sgrdm="jps -l | awk '\$2==\"org.gradle.launcher.daemon.bootstrap.GradleDae
 compdef g=git
 
 alias gu='git up'
+gur() {
+    local d
+    local -a failedDirs=()
+    for d in `find -iname .git -type d`; do
+        d="$(readlink -f "$d/..")"
+        (
+            cd $d && {
+                echo
+                echo "================================================================================"
+                echo "$PWD"
+                echo "================================================================================"
+                git up
+            }
+        ) || failedDirs=( "$failedDirs[@]" "$d")
+    done
+    if [ "$#failedDirs[@]" -gt 0 ]; then
+        echo
+        echo
+        echo "================================================================================"
+        echo "Failed dirs:"
+        for d in "$failedDirs[@]"; do
+            echo "    $d"
+        done
+    fi
+}
 
 alias ga.='git add .'
 alias ga..='git add ..'
@@ -381,8 +407,8 @@ alias gbw='git browse'
 
 ## URL
 
-# change git repo addr http addr
-cgh() {
+# show swithed git repo addr(git/http)
+shg() {
     local url="${1:-$(git remote get-url origin)}"
     if [ -z "$url" ]; then
         echo "No arguement and Not a git repository!"
@@ -395,17 +421,30 @@ cgh() {
         echo "$url" | sed 's#^git@#http://#; s#http://github.com#https://github.com#; s#(\.com|\.org):#\1/#; s#\.git$##' -r | c
     fi
 }
+
+shgr() {
+    local d
+    for d in `find -iname .git -type d`; do
+        (
+            cd $d/..
+            echo "$PWD : $(git remote get-url origin)"
+        )
+    done
+}
+
 # change git repo addr http addr recursively
-cghr() {
+chgr() {
     local d
     for d in `find -iname .git -type d`; do
         (
             cd $d/..
             local url=$(git remote get-url origin)
             [[ "$url" =~ '^http'  ]] && {
-                gitUrl=$(cgh)
-                echo "$PWD : change $url to $gitUrl"
+                gitUrl=$(sgh)
+                echo "CHANGE $PWD : $url to $gitUrl"
                 grset origin $gitUrl
+            } || {
+                echo "Ignore $PWD : $url"
             }
         )
     done
