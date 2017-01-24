@@ -50,10 +50,13 @@ bindkey '^N' down-line-or-search
 # improve alias d of oh-my-zsh: colorful lines, near index number and dir name(more convenient for human eyes)
 alias d="dirs -v | head | tr '\t' ' ' | colines"
 
+# show type -a and which -a info together, very convenient!
 ta() {
     echo "type -a:\n"
+    # type buildin command can output which file the function is definded. COOL!
     type -a "$@"
     echo "\nwhich -a:\n"
+    # which buildin command can output the function implementation. COOL!
     which -a "$@"
 }
 
@@ -122,7 +125,6 @@ alias p='SHELL=sh fpp'
 toc() {
     command doctoc --notitle "$@" && sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
 }
-
 
 ###############################################################################
 # Git
@@ -325,6 +327,12 @@ export JAVA9_HOME='/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home'
 
 export JAVA_HOME="$JAVA7_HOME"
 
+# jenv is an awesome tool for managing parallel Versions of Java Development Kits!
+# https://github.com/linux-china/jenv
+[[ -s "/Users/jerry/.jenv/bin/jenv-init.sh" ]] && ! type jenv > /dev/null &&
+source "/Users/jerry/.jenv/bin/jenv-init.sh" &&
+source "/Users/jerry/.jenv/commands/completion.sh"
+
 # JAVA_HOME switcher
 alias j6='export JAVA_HOME=$JAVA6_HOME'
 alias j7='export JAVA_HOME=$JAVA7_HOME'
@@ -410,7 +418,7 @@ alias sgrdm="jps -l | awk '\$2==\"org.gradle.launcher.daemon.bootstrap.GradleDae
 
 # NVM: https://github.com/creationix/nvm
 export NVM_DIR="$HOME/.nvm"
-. "/usr/local/opt/nvm/nvm.sh"
+source "/usr/local/opt/nvm/nvm.sh"
 
 ###############################################################################
 # Python
@@ -470,6 +478,12 @@ relink_virtualenv() {
     )
 }
 
+eval "$(thefuck --alias f)"
+
+###############################################################################
+# Ruby
+###############################################################################
+source /Users/jerry/.rvm/scripts/rvm
 
 ###############################################################################
 # Erlang
