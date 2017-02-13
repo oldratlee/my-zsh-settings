@@ -219,6 +219,7 @@ alias ga.mno='git add . && git commit --amend --no-edit'
 alias ga.cp='git add . && git commit -v && git push'
 
 alias gampf='git commit --amend --no-edit && git push -f'
+alias ga.cpf='git add . && git commit -v && git push -f'
 alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
 
 # misc
@@ -258,13 +259,14 @@ chgr() {
     for d in `find -iname .git -type d`; do
         (
             cd $d/..
+            echo "Found $PWD"
             local url=$(git remote get-url origin)
             [[ "$url" =~ '^http'  ]] && {
-                local gitUrl=$(sgh)
+                local gitUrl=$(shg)
                 echo "CHANGE $PWD : $url to $gitUrl"
                 git remote set-url origin $gitUrl
             } || {
-                echo "Ignore $PWD : $url"
+                echo -e "\tIgnore $PWD : $url"
             }
         )
     done
@@ -283,13 +285,12 @@ gur() {
             cd $d && {
                 echo
                 echo "================================================================================"
-                echo "$PWD"
-                echo "================================================================================"
+                echo -e "Update Git repo:\n\trepo path: $PWD\n\trepo url: $(git remote get-url origin)"
                 git up
             }
         ) || failedDirs=( "$failedDirs[@]" "$d")
     done
-    if [ "$#failedDirs[@]" -gt 0 ]; then
+    if [ "${#failedDirs[@]}" -gt 0 ]; then
         echo
         echo
         echo "================================================================================"
