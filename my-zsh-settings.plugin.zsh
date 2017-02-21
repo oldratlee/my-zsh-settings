@@ -286,7 +286,9 @@ gur() {
                 echo
                 echo "================================================================================"
                 echo -e "Update Git repo:\n\trepo path: $PWD\n\trepo url: $(git remote get-url origin)"
-                git up
+                # below command info see https://github.com/aanand/git-up
+                git pull --rebase --autostash
+
             }
         ) || failedDirs=( "$failedDirs[@]" "$d")
     done
