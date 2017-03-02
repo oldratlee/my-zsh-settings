@@ -88,12 +88,14 @@ capw() {
 
 # alias shortcut, for most commonly used commands
 alias v=vim
+alias 'v-'='vim -'
 # http://stackoverflow.com/questions/14307086/tab-completion-for-aliased-sub-commands-in-zsh-alias-gco-git-checkout
 compdef v=vim
 alias vd=vimdiff
 alias vi=vim
 compdef vi=vim
 alias gv=gvim
+alias 'gv-'='gvim -'
 alias nv=nvim
 alias gvd=gvimdiff
 
@@ -529,7 +531,7 @@ alias schm='rlwrap -p 1\;32 -r -c -f $HOME/.scheme_completion.rlwrap scheme'
 ###############################################################################
 alias sp='/Applications/SWI-Prolog.app/Contents/MacOS/swipl'
 alias gpl='gprolog'
-alias bp='$HOME/ProgFiles/BProlog/bp'
+alias bp='$HOME/Applications/BProlog/bp'
 
 
 ###############################################################################
