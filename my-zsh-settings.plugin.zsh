@@ -560,24 +560,43 @@ alias bp='$HOME/Applications/BProlog/bp'
 # https://www.jetbrains.com/toolbox/
 JB_TOOL_HOME="$HOME/Library/Application Support/JetBrains/Toolbox/apps"
 
-#alias idea='open -a /Applications/IntelliJ\ IDEA.app'
-alias idea='open -a "$JB_TOOL_HOME"/IDEA-U/*/*/IntelliJ*.app'
+_jb_ide() {
+    local ide="$1"
+    shift
+    (
+        cd $JB_TOOL_HOME
+        local -a candidates=("$ide"/*/*/*.app)
+        cd "$OLDPWD"
+        [ "$#candidates[@]" -gt 1 ] && {
+            echo "Find multi candidates!"
+            select ide in "$candidates[@]" ; do
+                [ -n "$ide" ] && {
+                    [ -n "$ide" ] && open -a "$JB_TOOL_HOME/$ide" "$@"
+                    break
+                }
+            done
+        } || open -a "$JB_TOOL_HOME/$candidates" "$@"
+    )
+}
 
-alias wbs='open -a "$JB_TOOL_HOME"/WebStorm/*/*/WebStorm*.app'
+#alias idea='open -a /Applications/IntelliJ\ IDEA.app'
+alias idea='_jb_ide IDEA-U'
+
+alias wbs='_jb_ide WebStorm'
 #alias pyc='open -a /Applications/PyCharm.app'
-alias pyc='open -a "$JB_TOOL_HOME"/PyCharm-P/*/*/PyCharm*.app'
-alias rbm='open -a "$JB_TOOL_HOME"/RubyMine/*/*/RubyMine*.app'
+alias pyc='_jb_ide PyCharm-P'
+alias rbm='_jb_ide RubyMine'
 
 #alias apcd='open -a /Applications/AppCode.app'
-alias apc='open -a "$JB_TOOL_HOME"/AppCode/*/*/AppCode*.app'
+alias apc='_jb_ide AppCode'
 alias ads='open -a /Applications/Android\ Studio.app'
 
-alias cln='open -a "$JB_TOOL_HOME"/CLion/*/*/CLion*.app'
-alias rdr='open -a "$JB_TOOL_HOME"/Rider/*/*/Rider*.app'
+alias cln='_jb_ide CLion'
+alias rdr='_jb_ide Rider'
 
-alias dtg='open -a "$JB_TOOL_HOME"/datagrip/*/*/DataGrip*.app'
+alias dtg='_jb_ide datagrip'
 #alias phs='open -a /Applications/PhpStorm.app'
-alias mps='open -a "$JB_TOOL_HOME"/MPS/*/*/MPS*.app'
+alias mps='_jb_ide MPS'
 
 jb() {
     (
