@@ -6,6 +6,7 @@ export EDITOR=vim
 #export SHELL=/bin/bash
 export LANG=en_US.UTF-8
 export LESS="${LESS}iXF"
+export WINEDEBUG=-all
 
 
 ###############################################################################
@@ -47,6 +48,22 @@ bindkey '^N' down-line-or-search
 
 ### shell alias ###
 
+# core utils
+
+alias du='du -h'
+alias df='df -h'
+alias ll='ls -lh'
+alias tailf='tail -f'
+alias diff=colordiff
+D() {
+    diff "$@" | diff-so-fancy | less --tabs=4 -RFX
+}
+# alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=.idea'
+alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=build --exclude-dir=_site --exclude-dir=.idea --exclude-dir=taobao-tomcat --exclude=\*.ipr --exclude=\*.iml --exclude=\*.iws --exclude=\*.jar --exclude-dir=Pods'
+export GREP_COLOR='07;31'
+
+# zsh/oh-my-zsh
+
 # improve alias d of oh-my-zsh: colorful lines, near index number and dir name(more convenient for human eyes)
 alias d="dirs -v | head | tr '\t' ' ' | colines"
 
@@ -60,33 +77,8 @@ ta() {
     which -a "$@"
 }
 
-alias o=open
-alias o.='open .'
-alias o..='open ..'
-alias du='du -h'
-alias df='df -h'
-alias ll='ls -lh'
-alias tailf='tail -f'
+# editor
 
-# alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=.idea'
-alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=build --exclude-dir=_site --exclude-dir=.idea --exclude-dir=taobao-tomcat --exclude=\*.ipr --exclude=\*.iml --exclude=\*.iws --exclude=\*.jar --exclude-dir=Pods'
-export GREP_COLOR='07;31'
-
-alias diff=colordiff
-D() {
-    diff "$@" | diff-so-fancy | less --tabs=4 -RFX
-}
-
-alias cap='c ap'
-# print and copy full path of command bin
-capw() {
-    local arg
-    for arg; do
-        ap "$(which "$arg")" | c
-    done
-}
-
-# alias shortcut, for most commonly used commands
 alias v=vim
 alias 'v-'='vim -'
 # http://stackoverflow.com/questions/14307086/tab-completion-for-aliased-sub-commands-in-zsh-alias-gco-git-checkout
@@ -99,12 +91,26 @@ alias 'gv-'='gvim -'
 alias nv=nvim
 alias gvd=gvimdiff
 
-alias e=emacs
-# compdef e=emacs
-
 alias a='atom'
 alias a.='atom .'
 alias a..='atom ..'
+
+# mac utils
+
+alias o=open
+alias o.='open .'
+alias o..='open ..'
+
+# my utils
+
+alias cap='c ap'
+# print and copy full path of command bin
+capw() {
+    local arg
+    for arg; do
+        ap "$(which "$arg")" | c
+    done
+}
 
 alias t=tmux
 compdef t=tmux
@@ -127,6 +133,8 @@ alias p='SHELL=sh fpp'
 toc() {
     command doctoc --notitle "$@" && sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
 }
+
+alias pt=pstree
 
 ###############################################################################
 # Git
@@ -436,6 +444,7 @@ alias py3='python3'
 alias ipy='ipython'
 alias ipy2='ipython2'
 alias ipy3='ipython3'
+alias pyenv='python3 -m venv'
 
 ZSH_PIP_INDEXES='http://pypi.douban.com/simple/'
 
@@ -458,12 +467,12 @@ type deactivate > /dev/null && deactivate
 source $HOME/.virtualenv/default/bin/activate
 # Python Virtaul Env
 pve() {
-    local venv_path=$HOME/.virtualenv
     echo "current VIRTUAL_ENV: $VIRTUAL_ENV"
 
     echo "select python virtual env to activate:"
     local venv
-    select venv in `find $venv_path -maxdepth 1 -mindepth 1 -type d`; do
+    select venv in `find $HOME/.virtualenv -maxdepth 1 -mindepth 1 -type d` \
+                   `find $HOME/.pyenv -maxdepth 1 -mindepth 1 -type d` ; do
         [ -n "$venv" ] && {
             [ -n "$VIRTUAL_ENV" ] && deactivate
             source "$venv/bin/activate"
@@ -473,12 +482,22 @@ pve() {
 }
 
 relink_virtualenv() {
+    # relink python 2
     (
         cd $HOME/.virtualenv
         find -type l -xtype l -delete
         local d
         for d in *; do
             virtualenv $d
+        done
+    )
+    # relink python 3
+    (
+        cd $HOME/.pyenv
+        find -type l -xtype l -delete
+        local d
+        for d in *; do
+            python3 -m venv $d
         done
     )
 }
@@ -559,3 +578,16 @@ alias rdr='open -a "$JB_TOOL_HOME"/Rider/*/*/Rider*.app'
 alias dtg='open -a "$JB_TOOL_HOME"/datagrip/*/*/DataGrip*.app'
 #alias phs='open -a /Applications/PhpStorm.app'
 alias mps='open -a "$JB_TOOL_HOME"/MPS/*/*/MPS*.app'
+
+jb() {
+    (
+        cd $JB_TOOL_HOME
+        select ide in */*/*/*.app ; do
+            [ -n "$ide" ] && {
+                cd "$OLDPWD"
+                [ -n "$ide" ] && open -a "$JB_TOOL_HOME/$ide" "$@"
+                break
+            }
+        done
+    )
+}
