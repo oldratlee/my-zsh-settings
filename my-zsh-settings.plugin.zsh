@@ -16,12 +16,10 @@ export WINEDEBUG=-all
 ### shell settings ###
 
 # set color theme of ls in terminal to GNU/Linux Style
-# oh-my-zsh already set color theme correctly
-#
-#if brew list | grep coreutils > /dev/null ; then
-#    alias ls='ls -F --show-control-chars --color=auto'
-#    eval `gdircolors -b <(gdircolors --print-database)`
-#fi
+if brew list | grep coreutils > /dev/null ; then
+    alias ls='ls -F --show-control-chars --color=auto'
+    eval `gdircolors -b <(gdircolors --print-database)`
+fi
 
 # User configuration
 export MANPATH="/usr/local/opt/coreutils/libexec/gnuman:$MANPATH"
@@ -284,7 +282,7 @@ chgr() {
 
 
 # git up
-alias gu='git up'
+alias gu='git-up'
 # git up recursively
 gur() {
     local d
@@ -297,7 +295,7 @@ gur() {
                 echo "================================================================================"
                 echo -e "Update Git repo:\n\trepo path: $PWD\n\trepo url: $(git remote get-url origin)"
                 # below command info see https://github.com/aanand/git-up
-                git pull --rebase --autostash
+                git-up
 
             }
         ) || failedDirs=( "$failedDirs[@]" "$d")
