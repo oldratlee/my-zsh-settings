@@ -443,31 +443,25 @@ source "/usr/local/opt/nvm/nvm.sh"
 ###############################################################################
 # Python
 ###############################################################################
-
-# default python 2
-alias py='python'
-alias py2='python2'
-alias py3='python3'
-alias ipy='ipython'
-alias ipy2='ipython2'
-alias ipy3='ipython3'
-alias pyenv='python3 -m venv'
-
 ZSH_PIP_INDEXES='http://pypi.douban.com/simple/'
 
+alias py='python'
+alias ipy='ipython'
 alias pip='pip --trusted-host pypi.douban.com'
-alias pip2='pip2 --trusted-host pypi.douban.com'
-alias pip3='pip3 --trusted-host pypi.douban.com'
 compdef pip=pip
-compdef pip2=pip
-compdef pip3=pip
+
+alias py3='echo use python instead! && false'
+alias ipy3='echo use ipython instead! && false'
+alias pip3='echo use pip instead! && false'
+
+alias pyenv='python3 -m venv'
 
 pipup() {
     pip list --outdated | awk 'NR>2{print $1}' | xargs pip install --upgrade
 }
-pip3up() {
-    pip3 list --outdated | awk 'NR>2{print $1}' | xargs pip3 install --upgrade
-}
+# pip3up() {
+#     pip3 list --outdated | awk 'NR>2{print $1}' | xargs pip3 install --upgrade
+# }
 
 # use default virtualenv of python 2
 type deactivate > /dev/null && deactivate
