@@ -582,17 +582,17 @@ _jb_ide() {
 
 #alias idea='open -a /Applications/IntelliJ\ IDEA.app'
 alias idea='_jb_ide IDEA-U'
-
-alias wbs='_jb_ide WebStorm'
-#alias pyc='open -a /Applications/PyCharm.app'
-alias pyc='_jb_ide PyCharm-P'
-alias rbm='_jb_ide RubyMine'
-
 #alias apcd='open -a /Applications/AppCode.app'
 alias apc='_jb_ide AppCode'
 alias ads='open -a /Applications/Android\ Studio.app'
 
+#alias pyc='open -a /Applications/PyCharm.app'
+alias pyc='_jb_ide PyCharm-P'
+alias wbs='_jb_ide WebStorm'
+alias rbm='_jb_ide RubyMine'
+
 alias cln='_jb_ide CLion'
+alias gol='_jb_ide Gogland'
 alias rdr='_jb_ide Rider'
 
 alias dtg='_jb_ide datagrip'
