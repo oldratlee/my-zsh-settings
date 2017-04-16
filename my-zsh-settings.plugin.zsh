@@ -367,7 +367,9 @@ export MAVEN_OPTS="-Xmx512m"
 
 alias mc='mvn clean'
 alias mi='mvn install -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked'
+alias mio='mvn install -o -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked'
 alias mci='mvn clean && mvn install -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked'
+alias mcio='mvn clean && mvn install -o -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked'
 alias mdt='mvn dependency:tree'
 alias mds='mvn dependency:sources'
 alias mcv='mvn versions:display-dependency-updates versions:display-plugin-updates versions:display-property-updates'
@@ -378,7 +380,7 @@ muv() {
         echo "Only 1 argument for verson!"
         exit 1
     }
-    mvn org.codehaus.mojo:versions-maven-plugin:1.3.1:set -DgenerateBackupPoms=false -DnewVersion="$1"
+    mvn org.codehaus.mojo:versions-maven-plugin:2.3:set -DgenerateBackupPoms=false -DnewVersion="$1"
 }
 
 
