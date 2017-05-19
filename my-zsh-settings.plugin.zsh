@@ -60,11 +60,6 @@ D() {
 alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=build --exclude-dir=_site --exclude-dir=.idea --exclude-dir=taobao-tomcat --exclude=\*.ipr --exclude=\*.iml --exclude=\*.iws --exclude=\*.jar --exclude-dir=Pods'
 export GREP_COLOR='07;31'
 
-# zsh/oh-my-zsh
-
-# improve alias d of oh-my-zsh: colorful lines, near index number and dir name(more convenient for human eyes)
-alias d="dirs -v | head | tr '\t' ' ' | colines"
-
 # show type -a and which -a info together, very convenient!
 ta() {
     echo "type -a:\n"
@@ -74,6 +69,14 @@ ta() {
     # which buildin command can output the function implementation. COOL!
     which -a "$@"
 }
+
+# restart shell
+alias rssh='exec $SHELL -l'
+
+# zsh/oh-my-zsh
+
+# improve alias d of oh-my-zsh: colorful lines, near index number and dir name(more convenient for human eyes)
+alias d="dirs -v | head | tr '\t' ' ' | colines"
 
 # editor
 
