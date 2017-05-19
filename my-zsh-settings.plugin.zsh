@@ -135,6 +135,14 @@ toc() {
     command doctoc --notitle "$@" && sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
 }
 
+# create formula image by TeX
+fml() {
+    local url=$(printf 'http://chart.googleapis.com/chart?cht=tx&chl=%s\n' $(urlencode "$1"))
+    printf '<img src="%s" style="border:none;" alt="%s" />\n' "$url" "$1"
+    # imgcat <(curl -s "$url")
+    o $url
+}
+
 alias pt=pstree
 
 ###############################################################################
