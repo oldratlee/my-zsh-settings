@@ -214,6 +214,7 @@ alias ga..='git add ..'
 # git checkout
 
 alias gcoh='git checkout HEAD'
+alias gcop='git checkout -'
 
 # git reset/rebase
 
