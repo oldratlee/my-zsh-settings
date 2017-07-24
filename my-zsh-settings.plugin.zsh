@@ -549,6 +549,7 @@ alias sgrdm="jps -l | awk '\$2==\"org.gradle.launcher.daemon.bootstrap.GradleDae
 # NVM: https://github.com/creationix/nvm
 export NVM_DIR="$HOME/.nvm"
 source "/usr/local/opt/nvm/nvm.sh"
+source <(npm completion)
 
 ###############################################################################
 # Python
@@ -618,11 +619,14 @@ eval "$(thefuck --alias f)"
 ###############################################################################
 # Go
 ###############################################################################
+
 export GOPATH=/Users/jerry/.gopath
+export PATH=$PATH:$GOPATH/bin
 
 ###############################################################################
 # Ruby
 ###############################################################################
+
 source /Users/jerry/.rvm/scripts/rvm
 
 ###############################################################################
@@ -664,7 +668,8 @@ alias schm='rlwrap -p 1\;32 -r -c -f $HOME/.scheme_completion.rlwrap scheme'
 ###############################################################################
 # Prolog
 ###############################################################################
-alias sp='/Applications/SWI-Prolog.app/Contents/MacOS/swipl'
+
+alias sp='swipl'
 alias gpl='gprolog'
 alias bp='$HOME/Applications/BProlog/bp'
 
@@ -672,6 +677,7 @@ alias bp='$HOME/Applications/BProlog/bp'
 ###############################################################################
 # JetBrains
 ###############################################################################
+
 # JetBrains Toolbox: The right tool for the job — every time!
 # https://www.jetbrains.com/toolbox/
 JB_TOOL_HOME="$HOME/Library/Application Support/JetBrains/Toolbox/apps"
@@ -711,7 +717,6 @@ alias gol='_jb_ide Gogland'
 alias rdr='_jb_ide Rider'
 
 alias dtg='_jb_ide datagrip'
-#alias phs='open -a /Applications/PhpStorm.app'
 alias mps='_jb_ide MPS'
 
 jb() {
