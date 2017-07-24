@@ -53,9 +53,11 @@ alias df='df -h'
 alias ll='ls -lh'
 alias tailf='tail -f'
 alias diff=colordiff
-D() {
-    diff "$@" | diff-so-fancy | less --tabs=4 -RFX
-}
+alias D=colordiff
+# D() {
+#     diff "$@" | diff-so-fancy | less --tabs=4 -RFX
+# }
+
 # alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=.idea'
 alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=build --exclude-dir=_site --exclude-dir=.idea --exclude-dir=taobao-tomcat --exclude=\*.ipr --exclude=\*.iml --exclude=\*.iws --exclude=\*.jar --exclude-dir=Pods'
 export GREP_COLOR='07;31'
@@ -70,6 +72,10 @@ ta() {
     which -a "$@"
 }
 
+# Remove duplicate entries in a file without sorting
+# http://www.commandlinefu.com/commands/view/4389
+alias uq="awk '!x[\$0]++'"
+
 # restart shell
 alias rssh='exec $SHELL -l'
 
@@ -82,25 +88,88 @@ alias d="dirs -v | head | tr '\t' ' ' | colines"
 
 alias v=vim
 alias 'v-'='vim -'
+alias vw=view
+alias vd=vimdiff
 # http://stackoverflow.com/questions/14307086/tab-completion-for-aliased-sub-commands-in-zsh-alias-gco-git-checkout
 compdef v=vim
-alias vd=vimdiff
 alias vi=vim
 compdef vi=vim
+
+alias nv=nvim
+
 alias gv=gvim
 alias 'gv-'='gvim -'
-alias nv=nvim
+alias gvm=gview
 alias gvd=gvimdiff
 
 alias a='atom'
 alias a.='atom .'
 alias a..='atom ..'
+alias vc='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app'
+alias vc.='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app .'
+alias vc..='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app ..'
 
 # mac utils
 
 alias o=open
 alias o.='open .'
 alias o..='open ..'
+
+# docker
+
+alias dk=docker
+alias dkc='docker create'
+
+alias dkr='docker run'
+alias dkrr='docker run --rm'
+
+alias dkri='docker run -i -t'
+alias dkrri='docker run --rm -i -t'
+
+alias dkrd='docker run -d'
+alias dkrrd='docker run --rm -d'
+
+alias dkrm='docker rm'
+alias dkrmi='docker rmi'
+
+alias dks='docker start'
+alias dksi='docker start -i'
+alias dkrs='docker restart'
+alias dkstop='docker stop'
+
+alias dki='docker inspect'
+alias dkps='docker ps'
+alias dkpsa='docker ps -a'
+alias dktop='docker top'
+
+alias dke='docker exec'
+alias dkei='docker exec -i -t'
+alias dkl='docker logs'
+alias dklf='docker logs -f'
+
+alias dkimg='docker images'
+alias dkp='docker pull'
+alias dksh='docker search'
+
+dkcleanupimg() {
+    local images="$(docker images | awk 'NR>1 && $2=="<none>" {print $3}')"
+    [ -z "$images" ] && {
+        echo "No images need to cleanup!"
+        return
+    }
+
+    echo "$images" | xargs --no-run-if-empty docker rmi
+}
+
+dkupimg() {
+    local images="$(docker images | awk 'NR>1 && $2="latest"{print $1}')"
+    [ -z "$images" ] && {
+        echo "No images need to upgrade!"
+        return
+    }
+
+    echo "$images" | xargs --no-run-if-empty -n1 docker pull
+}
 
 # my utils
 
@@ -114,9 +183,13 @@ capw() {
 }
 
 alias t=tmux
+alias tma='exec tmux attach'
 compdef t=tmux
 
 alias b=brew
+alias bi='brew install'
+alias bri='brew reinstall'
+alias bs='brew search'
 compdef b=brew
 
 alias sl=sloccount
@@ -125,10 +198,10 @@ alias sl=sloccount
 alias ax='axel -n8'
 alias axl='axel -n16'
 
-## reduce exit time of fpp
 # fpp is an awesome toolkit: https://github.com/facebook/PathPicker
+## reduce exit time of fpp
 alias fpp='SHELL=sh fpp'
-alias p='SHELL=sh fpp'
+alias p=fpp
 
 # adjust indent for space 4
 toc() {
@@ -144,6 +217,16 @@ fml() {
 }
 
 alias pt=pstree
+
+alias asma=asciinema
+alias asma2gif='docker run --rm -v $PWD:/data asciinema/asciicast2gif -s2 -S1 -t monokai'
+
+# open file with default application
+for ext in doc{,x} ppt{,x} xls{,x} key pdf png jp{,e}g htm{,l} m{,k}d markdown txt xml xmind java c{,pp} .h{,pp}; do
+    alias -s $ext=open
+done
+
+alias otv=octave-cli
 
 ###############################################################################
 # Git
