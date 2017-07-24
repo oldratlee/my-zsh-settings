@@ -239,16 +239,13 @@ compdef g=git
 alias gdc='git diff --cached'
 function gds() {
     if [ $# -eq 0 ]; then
-        from=@^
-        to=@
+        2=@
+        1=@^
     elif [ $# -eq 1 ]; then
-        from="$1^"
-        to="$1"
-    else
-        from="$1"
-        to="$2"
+        2="$1"
+        1="$1^"
     fi
-    git diff "$from" "$to"
+    git diff "$@"
 }
 alias gdh='git diff HEAD'
 alias gdorigin='git diff origin/$(git_current_branch)'
@@ -279,7 +276,7 @@ gbt() {
     # http://stackoverflow.com/questions/5188320/how-can-i-get-a-list-of-git-branches-ordered-by-most-recent-commit
     # --sort=-committerdate : sort branch by commit date in descending order
     # --sort=committerdate : sort branch by commit date in ascending order
-    git branch -a --sort=committerdate "$@" | sed -r "/->/b; /\/tags\//d; /\/releases\//d; /\/backups?\//d; /\/bkps?\//d; s#remotes/origin/#remotes/origin => #"
+    git branch -a --sort=committerdate "$@" | sed -r "/->/b; /\/tags\//d; /\/releases\//d; /\/backups?\//d; /\/bkps?\//d; s#remotes/origin/(.*)#remotes/origin/\1 => \1#"
 }
 
 # http://stackoverflow.com/questions/1419623/how-to-list-branches-that-contain-a-given-commit
@@ -297,7 +294,10 @@ alias ga..='git add ..'
 # git checkout
 
 alias gcoh='git checkout HEAD'
+# checkout previous branch
 alias gcop='git checkout -'
+# checkout most recent modified branch
+alias gcor="git checkout \$(gbt | awk -rF' +=> +' '/=>/{print \$2}' | tail -1)"
 
 # git reset/rebase
 
@@ -333,9 +333,17 @@ alias ga.cpf='git add . && git commit -v && git push -f'
 alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
 
 # misc
-alias gbw='git browse'
-alias sg='open -a /Applications/SmartGit.app'
+gbw() {
+    # git browse
+    local url="${1:-$(git remote get-url origin)}"
+    if [[ "$url" =~ '^http' ]]; then
+        open "$url"
+    else
+        open $(echo "$url" | sed 's#^git@#http://#; s#http://github.com#https://github.com#; s#(\.com|\.org):#\1/#; s#\.git$##' -r)
+    fi
+}
 
+alias sg='open -a /Applications/SmartGit.app'
 
 ## URL shower/switcher
 
@@ -382,14 +390,21 @@ chgr() {
     done
 }
 
-
 # git up
+#
+# https://github.com/aanand/git-up
+# git pull has two problems:
+#   It merges upstream changes by default, when it's really more polite to rebase over them, unless your collaborators enjoy a commit graph that looks like bedhead.
+#   It only updates the branch you're currently on, which means git push will shout at you for being behind on branches you don't particularly care about right now.
+# Solve them once and for all.
 alias gu='git-up'
+
 # git up recursively
 gur() {
-    local d
+    local workdir=${1:-.}
     local -a failedDirs=()
-    for d in `find -iname .git -type d`; do
+    local d
+    for d in `find $workdir -iname .git -type d`; do
         d="$(readlink -f "$d/..")"
         (
             cd $d && {
