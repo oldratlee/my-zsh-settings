@@ -436,11 +436,11 @@ gur() {
 swJavaNetProxy() {
     # How to check if a variable is set in Bash?
     # http://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
-    [ -z "${JAVA_OPTS_BEFORE_NET_PROXY+if_undefined_will_output}" ] && {
+    [ -z "${JAVA_OPTS_BEFORE_NET_PROXY+if_check_var_defined_will_got_output_or_nothing}" ] && {
         export JAVA_OPTS_BEFORE_NET_PROXY="$JAVA_OPTS"
         export JAVA_OPTS="$JAVA_OPTS -DproxySet=true -DsocksProxyHost=127.0.0.1 -DsocksProxyPort=7070"
         echo "turn ON java net proxy!"
-    }|| {
+    } || {
         export JAVA_OPTS="$JAVA_OPTS_BEFORE_NET_PROXY"
         unset JAVA_OPTS_BEFORE_NET_PROXY
         echo "turn off java net proxy!"
@@ -490,7 +490,7 @@ muv() {
         echo "Only 1 argument for verson!"
         exit 1
     }
-    mvn org.codehaus.mojo:versions-maven-plugin:2.3:set -DgenerateBackupPoms=false -DnewVersion="$1"
+    mvn org.codehaus.mojo:versions-maven-plugin:2.4:set -DgenerateBackupPoms=false -DnewVersion="$1"
 }
 
 
