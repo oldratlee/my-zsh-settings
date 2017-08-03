@@ -101,6 +101,7 @@ alias gv=gvim
 alias 'gv-'='gvim -'
 alias gvm=gview
 alias gvd=gvimdiff
+alias note='(cd ~/notes; gvim)'
 
 alias a='atom'
 alias a.='atom .'
@@ -336,11 +337,12 @@ alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
 gbw() {
     # git browse
     local url="${1:-$(git remote get-url origin)}"
-    if [[ "$url" =~ '^http' ]]; then
-        open "$url"
-    else
-        open $(echo "$url" | sed 's#^git@#http://#; s#http://github.com#https://github.com#; s#(\.com|\.org):#\1/#; s#\.git$##' -r)
+    if ! [[ "$url" =~ '^http' ]]; then
+        url=$(echo "$url" | sed 's#^git@#http://#; s#http://github.com#https://github.com#; s#(\.com|\.org):#\1/#; s#\.git$##' -r)
     fi
+
+    echo "open $url"
+    open "$url"
 }
 
 alias sg='open -a /Applications/SmartGit.app'
@@ -457,9 +459,9 @@ export JAVA_HOME="$JAVA7_HOME"
 
 # jenv is an awesome tool for managing parallel Versions of Java Development Kits!
 # https://github.com/linux-china/jenv
-[[ -s "/Users/jerry/.jenv/bin/jenv-init.sh" ]] && ! type jenv > /dev/null &&
-source "/Users/jerry/.jenv/bin/jenv-init.sh" &&
-source "/Users/jerry/.jenv/commands/completion.sh"
+[[ -s "$HOME/.jenv/bin/jenv-init.sh" ]] && ! type jenv > /dev/null &&
+source "$HOME/.jenv/bin/jenv-init.sh" &&
+source "$HOME/.jenv/commands/completion.sh"
 
 # JAVA_HOME switcher
 alias j6='export JAVA_HOME=$JAVA6_HOME'
@@ -558,8 +560,6 @@ ZSH_PIP_INDEXES='http://pypi.douban.com/simple/'
 
 alias py='python'
 alias ipy='ipython'
-alias pip='pip --trusted-host pypi.douban.com'
-compdef pip=pip
 
 alias py3='echo use python instead! && false'
 alias ipy3='echo use ipython instead! && false'
@@ -570,13 +570,7 @@ alias pyenv='python3 -m venv'
 pipup() {
     pip list --outdated | awk 'NR>2{print $1}' | xargs pip install --upgrade
 }
-# pip3up() {
-#     pip3 list --outdated | awk 'NR>2{print $1}' | xargs pip3 install --upgrade
-# }
 
-# use default virtualenv of python 2
-type deactivate > /dev/null && deactivate
-source $HOME/.virtualenv/default/bin/activate
 # Python Virtaul Env
 pve() {
     echo "current VIRTUAL_ENV: $VIRTUAL_ENV"
@@ -614,20 +608,40 @@ relink_virtualenv() {
     )
 }
 
+# activate/deactivate anaconda3
+aa() {
+    declare -f deactivate > /dev/null && {
+        echo "Activate anaconda3!"
+
+        deactivate
+        # append anaconda3 to PATH
+        export PATH=$HOME/.anaconda3/bin:$PATH
+    } || {
+        echo "Deactivate anaconda3!"
+
+        # remove anaconda3 from PATH
+        export PATH="$(echo "$PATH" | sed 's/:/\n/g' | grep -Fv .anaconda3/bin | paste -s -d:)"
+        source $HOME/.pyenv/default/bin/activate
+    }
+}
+
+# activate anaconda3 python
+export PATH=$HOME/.anaconda3/bin:$PATH
+
 eval "$(thefuck --alias f)"
 
 ###############################################################################
 # Go
 ###############################################################################
 
-export GOPATH=/Users/jerry/.gopath
+export GOPATH=$HOME/.gopath
 export PATH=$PATH:$GOPATH/bin
 
 ###############################################################################
 # Ruby
 ###############################################################################
 
-source /Users/jerry/.rvm/scripts/rvm
+source $HOME/.rvm/scripts/rvm
 
 ###############################################################################
 # Erlang
