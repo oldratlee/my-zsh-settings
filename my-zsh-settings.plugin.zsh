@@ -393,8 +393,8 @@ chgr() {
 }
 
 # git up
+# https://github.com/msiemens/PyGitUp
 #
-# https://github.com/aanand/git-up
 # git pull has two problems:
 #   It merges upstream changes by default, when it's really more polite to rebase over them, unless your collaborators enjoy a commit graph that looks like bedhead.
 #   It only updates the branch you're currently on, which means git push will shout at you for being behind on branches you don't particularly care about right now.
@@ -402,30 +402,43 @@ chgr() {
 alias gu='git-up'
 
 # git up recursively
+# Usage: gur [<dir1>  [<dir2> ...]]
 gur() {
-    local workdir=${1:-.}
-    local -a failedDirs=()
-    local d
-    for d in `find $workdir -iname .git -type d`; do
-        d="$(readlink -f "$d/..")"
-        (
-            cd $d && {
-                echo
-                echo "================================================================================"
-                echo -e "Update Git repo:\n\trepo path: $PWD\n\trepo url: $(git remote get-url origin)"
-                # below command info see https://github.com/aanand/git-up
-                git-up
+    local -a files
+    [ $# -eq 0 ] && files=(.) || files=("$@")
 
-            }
-        ) || failedDirs=( "$failedDirs[@]" "$d")
+    local -a failedDirs=()
+
+    local f
+    local d
+    for f in "${files[@]}" ; do
+        [ -d "$f" ] || {
+            echo
+            echo "================================================================================"
+            echo "$f is not a directory, ignore and skip!!"
+            continue
+        }
+        for d in `find $f -iname .git -type d`; do
+            d="$(readlink -f "$d/..")"
+            (
+                cd $d && {
+                    echo
+                    echo "================================================================================"
+                    echo -e "Update Git repo:\n\trepo path: $PWD\n\trepo url: $(git remote get-url origin)"
+                    git-up
+                }
+            ) || failedDirs=( "${failedDirs[@]}" "$d")
+        done
     done
+
     if [ "${#failedDirs[@]}" -gt 0 ]; then
         echo
         echo
         echo "================================================================================"
         echo "Failed dirs:"
-        for d in "$failedDirs[@]"; do
-            echo "    $d"
+        local idx=0
+        for d in "${failedDirs[@]}"; do
+            echo "    $((++idx)): $d"
         done
     fi
 }
