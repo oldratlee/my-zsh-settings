@@ -467,8 +467,10 @@ export JAVA6_HOME='/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home'
 export JAVA7_HOME=$(echo /Library/Java/JavaVirtualMachines/jdk1.7.0_*.jdk/Contents/Home)
 export JAVA8_HOME=$(echo /Library/Java/JavaVirtualMachines/jdk1.8.0_*.jdk/Contents/Home)
 export JAVA9_HOME='/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home'
+# default JAVA_HOME
+export JAVA0_HOME='/Users/jerry/.jenv/candidates/java/current'
 
-export JAVA_HOME="$JAVA7_HOME"
+export JAVA_HOME="$JAVA0_HOME"
 
 # jenv is an awesome tool for managing parallel Versions of Java Development Kits!
 # https://github.com/linux-china/jenv
@@ -481,6 +483,7 @@ alias j6='export JAVA_HOME=$JAVA6_HOME'
 alias j7='export JAVA_HOME=$JAVA7_HOME'
 alias j8='export JAVA_HOME=$JAVA8_HOME'
 alias j9='export JAVA_HOME=$JAVA9_HOME'
+alias j0='export JAVA_HOME=$JAVA0_HOME'
 
 alias scl='scala -Dscala.color -feature'
 
