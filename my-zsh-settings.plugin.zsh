@@ -16,7 +16,7 @@ export WINEDEBUG=-all
 ### shell settings ###
 
 # set color theme of ls in terminal to GNU/Linux Style
-if brew list | grep coreutils > /dev/null ; then
+if brew list | grep coreutils -q ; then
     alias ls='ls -F --show-control-chars --color=auto'
     eval `gdircolors -b <(gdircolors --print-database)`
 fi
@@ -58,8 +58,7 @@ alias D=colordiff
 #     diff "$@" | diff-so-fancy | less --tabs=4 -RFX
 # }
 
-# alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=.idea'
-alias grep='grep --color=auto --exclude-dir=.cvs --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=target --exclude-dir=build --exclude-dir=_site --exclude-dir=.idea --exclude-dir=taobao-tomcat --exclude=\*.ipr --exclude=\*.iml --exclude=\*.iws --exclude=\*.jar --exclude-dir=Pods'
+alias grep='grep --color=auto --exclude-dir={.git,.hg,.svn,.cvs,bzr,CVS,target,build,_site,.idea,Pods,taobao-tomcat} --exclude=\*.{ipr,iml,iws,jar}'
 export GREP_COLOR='07;31'
 
 # show type -a and which -a info together, very convenient!
@@ -109,6 +108,8 @@ alias a..='atom ..'
 alias vc='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app'
 alias vc.='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app .'
 alias vc..='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app ..'
+
+alias info='$(brew --prefix texinfo)/bin/info'
 
 # mac utils
 
@@ -277,7 +278,7 @@ gbt() {
     # http://stackoverflow.com/questions/5188320/how-can-i-get-a-list-of-git-branches-ordered-by-most-recent-commit
     # --sort=-committerdate : sort branch by commit date in descending order
     # --sort=committerdate : sort branch by commit date in ascending order
-    git branch -a --sort=committerdate "$@" | sed -r "/->/b; /\/tags\//d; /\/releases\//d; /\/backups?\//d; /\/bkps?\//d; s#remotes/origin/(.*)#remotes/origin/\1 => \1#"
+    git branch -a --sort=committerdate "$@" | sed -r "/->/b; /\/tags\//d; /\/releases\//d; /\/backups?\//d; /\/bkps?\//d; s#remotes/([^/]+)/(.*)#remotes/\1/\2 => \2#"
 }
 
 # http://stackoverflow.com/questions/1419623/how-to-list-branches-that-contain-a-given-commit
