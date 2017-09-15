@@ -16,10 +16,11 @@ export WINEDEBUG=-all
 ### shell settings ###
 
 # set color theme of ls in terminal to GNU/Linux Style
-if brew list | grep coreutils -q ; then
+# use `which gdircolors` instead of `brew list | grep coreutils -q` for speedup
+which gdircolors &> /dev/null && {
     alias ls='ls -F --show-control-chars --color=auto'
     eval `gdircolors -b <(gdircolors --print-database)`
-fi
+}
 
 # User configuration
 export MANPATH="/usr/local/opt/coreutils/libexec/gnuman:$MANPATH"
@@ -87,6 +88,7 @@ alias d="dirs -v | head | tr '\t' ' ' | colines"
 
 alias v=vim
 alias 'v-'='vim -'
+alias 'vv'='vim -'
 alias vw=view
 alias vd=vimdiff
 # http://stackoverflow.com/questions/14307086/tab-completion-for-aliased-sub-commands-in-zsh-alias-gco-git-checkout
@@ -98,6 +100,7 @@ alias nv=nvim
 
 alias gv=gvim
 alias 'gv-'='gvim -'
+alias 'gvv'='gvim -'
 alias gvm=gview
 alias gvd=gvimdiff
 alias note='(cd ~/notes; gvim)'
@@ -109,7 +112,8 @@ alias vc='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app'
 alias vc.='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app .'
 alias vc..='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app ..'
 
-alias info='$(brew --prefix texinfo)/bin/info'
+# find texinfo
+export PATH="/usr/local/opt/texinfo/bin:$PATH"
 
 # mac utils
 
