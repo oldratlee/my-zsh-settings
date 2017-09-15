@@ -22,6 +22,7 @@ which gdircolors &> /dev/null && {
     eval `gdircolors -b <(gdircolors --print-database)`
 }
 
+
 # User configuration
 export MANPATH="/usr/local/opt/coreutils/libexec/gnuman:$MANPATH"
 #export MANPATH="$(find /usr/local/Cellar -maxdepth 4 -type d -name man | tr '\n' :)$MANPATH"
@@ -570,13 +571,20 @@ alias sgrdm="jps -l | awk '\$2==\"org.gradle.launcher.daemon.bootstrap.GradleDae
 ###############################################################################
 
 # NVM: https://github.com/creationix/nvm
-export NVM_DIR="$HOME/.nvm"
-source "/usr/local/opt/nvm/nvm.sh"
-source <(npm completion)
+#
+# NVM init is slowwwwww! about 1.2s on my machine!!
+# manually activate when needed.
+export PATH="$HOME/.nvm/versions/node/v8.1.2/bin:$PATH"
+anvm() {
+    export NVM_DIR="$HOME/.nvm"
+    source "/usr/local/opt/nvm/nvm.sh"
+    source <(npm completion)
+}
 
 ###############################################################################
 # Python
 ###############################################################################
+
 ZSH_PIP_INDEXES='http://pypi.douban.com/simple/'
 
 alias py='python'
