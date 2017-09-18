@@ -72,6 +72,7 @@ ta() {
     # which buildin command can output the function implementation. COOL!
     which -a "$@"
 }
+compdef ta=type
 
 # Remove duplicate entries in a file without sorting
 # http://www.commandlinefu.com/commands/view/4389
@@ -474,7 +475,7 @@ export JAVA7_HOME=$(echo /Library/Java/JavaVirtualMachines/jdk1.7.0_*.jdk/Conten
 export JAVA8_HOME=$(echo /Library/Java/JavaVirtualMachines/jdk1.8.0_*.jdk/Contents/Home)
 export JAVA9_HOME='/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home'
 # default JAVA_HOME
-export JAVA0_HOME='/Users/jerry/.jenv/candidates/java/current'
+export JAVA0_HOME='$HOME/.jenv/candidates/java/current'
 
 export JAVA_HOME="$JAVA0_HOME"
 
@@ -493,6 +494,12 @@ alias j0='export JAVA_HOME=$JAVA0_HOME'
 
 alias scl='scala -Dscala.color -feature'
 
+# antlr tools
+# download antlr complete jar here: http://www.antlr.org/download.html
+alias alcc='$JAVA_HOME/bin/java -Xmx384m -cp $HOME/Applications/antlr-4.7-complete.jar org.antlr.v4.Tool'
+alias alc='$JAVA_HOME/bin/javac -J-DXmx384m -cp .:$HOME/Applications/antlr-4.7-complete.jar:$CLASSPATH'
+alias ald='$JAVA_HOME/bin/java -Xmx384m -cp .:$HOME/Applications/antlr-4.7-complete.jar:$CLASSPATH org.antlr.v4.gui.TestRig'
+
 ###############################################################################
 # Maven
 ###############################################################################
@@ -509,6 +516,7 @@ alias mds='mvn dependency:sources'
 alias mcv='mvn versions:display-dependency-updates versions:display-plugin-updates versions:display-property-updates'
 alias mcdeploy='mvn clean && mvn deploy -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release'
 
+# Update project version
 muv() {
     [ $# -ne 1 ] && {
         echo "Only 1 argument for verson!"
@@ -517,6 +525,12 @@ muv() {
     mvn org.codehaus.mojo:versions-maven-plugin:2.4:set -DgenerateBackupPoms=false -DnewVersion="$1"
 }
 
+# create maven wrapper
+# http://mvnrepository.com/artifact/io.takari/maven
+mwrapper() {
+    local version=${1:-3.5.0}
+    mvn -N io.takari:maven:0.4.3:wrapper -Dmaven="$version"
+}
 
 ###############################################################################
 # Gradle
