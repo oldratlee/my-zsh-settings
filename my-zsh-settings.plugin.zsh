@@ -262,6 +262,7 @@ alias gdorigin='git diff origin/$(git_current_branch)'
 
 alias gssi='git status -s --ignored'
 alias gsti='git status --ignored'
+alias gs='git status' # I never use gs command but will mistype :)
 
 # git log
 
@@ -269,25 +270,28 @@ alias gg='glog -20'
 
 ## git branch
 
-gbb() {
-    git branch -a "$@" | sed "/->/b; s#remotes/origin/#remotes/origin => #"
-}
+alias __git_remove_bkp_rel_branches='sed -r "/->/b; /\/tags\//d; /\/releases\//d; /\/backups?\//d; /\/bkps?\//d"'
+alias __git_output_local_branch='sed -r "s#remotes/([^/]+)/(.*)#remotes/\1/\2 => \2#"'
 
-gbT() {
-    # http://stackoverflow.com/questions/5188320/how-can-i-get-a-list-of-git-branches-ordered-by-most-recent-commit
+__gbb() {
+    # How can I get a list of git branches, ordered by most recent commit?
+    #   http://stackoverflow.com/questions/5188320
     # --sort=-committerdate : sort branch by commit date in descending order
     # --sort=committerdate : sort branch by commit date in ascending order
-    git branch -a --sort=committerdate "$@" | sed -r "/->/b; /\/tags\//d; /\/releases\//d; /\/backups?\//d; /\/bkps?\//d"
+    git branch --sort=committerdate "$@" | __git_remove_bkp_rel_branches | __git_output_local_branch
 }
 
-gbt() {
-    # http://stackoverflow.com/questions/5188320/how-can-i-get-a-list-of-git-branches-ordered-by-most-recent-commit
-    # --sort=-committerdate : sort branch by commit date in descending order
-    # --sort=committerdate : sort branch by commit date in ascending order
-    git branch -a --sort=committerdate "$@" | sed -r "/->/b; /\/tags\//d; /\/releases\//d; /\/backups?\//d; /\/bkps?\//d; s#remotes/([^/]+)/(.*)#remotes/\1/\2 => \2#"
+__gbB() {
+    git branch --sort=committerdate "$@" | __git_remove_bkp_rel_branches
 }
 
-# http://stackoverflow.com/questions/1419623/how-to-list-branches-that-contain-a-given-commit
+alias gbt='__gbb -a'
+alias gbtr='__gbb --remote'
+alias gbT='__gbB -a'
+alias gbTr='__gbB --remote'
+
+# How to list branches that contain a given commit?
+# http://stackoverflow.com/questions/1419623
 alias gbc='git branch --contains'
 alias gbrc='git branch -r --contains'
 
