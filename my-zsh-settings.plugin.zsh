@@ -60,7 +60,7 @@ alias D=colordiff
 #     diff "$@" | diff-so-fancy | less --tabs=4 -RFX
 # }
 
-alias grep='grep --color=auto --exclude-dir={.git,.hg,.svn,.cvs,bzr,CVS,target,build,_site,.idea,Pods,taobao-tomcat} --exclude=\*.{ipr,iml,iws,jar}'
+alias grep='grep --color=auto --exclude-dir={.git,.hg,.svn,.cvs,bzr,CVS,target,build,_site,.idea,Pods,taobao-tomcat} --exclude=\*.{ipr,iml,iws,jar,war,zip}'
 export GREP_COLOR='07;31'
 
 # show type -a and which -a info together, very convenient!
@@ -205,6 +205,13 @@ alias sl=sloccount
 # speed up download
 alias ax='axel -n8'
 alias axl='axel -n16'
+
+# List tcp listen port info(very useful on mac)
+#
+# inhibits the conversion so as to run faster
+#   -P inhibits the conversion of port numbers to port names
+#   -n inhibits the conversion of network numbers to host names
+alias tcplisten='lsof -n -P -iTCP -sTCP:LISTEN'
 
 # fpp is an awesome toolkit: https://github.com/facebook/PathPicker
 ## reduce exit time of fpp
