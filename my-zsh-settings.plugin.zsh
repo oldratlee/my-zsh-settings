@@ -78,8 +78,8 @@ compdef ta=type
 # http://www.commandlinefu.com/commands/view/4389
 alias uq="awk '!x[\$0]++'"
 
-# restart shell
-alias rssh='exec $SHELL -l'
+# ReStart SHell
+alias rsh='exec $SHELL -l'
 
 # zsh/oh-my-zsh
 
@@ -269,7 +269,7 @@ alias gdorigin='git diff origin/$(git_current_branch)'
 
 alias gssi='git status -s --ignored'
 alias gsti='git status --ignored'
-alias gs='git status' # I never use gs command but will mistype :)
+alias gs='git status -s' # I never use gs command but will mistype :)
 
 # git log
 
@@ -278,7 +278,7 @@ alias gg='glog -20'
 ## git branch
 
 alias __git_remove_bkp_rel_branches='sed -r "/->/b; /\/tags\//d; /\/releases\//d; /\/backups?\//d; /\/bkps?\//d"'
-alias __git_output_local_branch='sed -r "s#remotes/([^/]+)/(.*)#remotes/\1/\2 => \2#"'
+alias __git_output_local_branch='sed -r "/->/b; s#remotes/([^/]+)/(.*)#remotes/\1/\2 => \2#"'
 
 __gbb() {
     # How can I get a list of git branches, ordered by most recent commit?
@@ -505,11 +505,6 @@ alias j0='export JAVA_HOME=$JAVA0_HOME'
 
 alias scl='scala -Dscala.color -feature'
 
-# antlr tools
-# download antlr complete jar here: http://www.antlr.org/download.html
-alias alcc='$JAVA_HOME/bin/java -Xmx384m -cp $HOME/Applications/antlr-4.7-complete.jar org.antlr.v4.Tool'
-alias alc='$JAVA_HOME/bin/javac -J-DXmx384m -cp .:$HOME/Applications/antlr-4.7-complete.jar:$CLASSPATH'
-alias ald='$JAVA_HOME/bin/java -Xmx384m -cp .:$HOME/Applications/antlr-4.7-complete.jar:$CLASSPATH org.antlr.v4.gui.TestRig'
 
 ###############################################################################
 # Maven
