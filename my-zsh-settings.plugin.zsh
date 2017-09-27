@@ -226,7 +226,7 @@ toc() {
 # create formula image by TeX
 fml() {
     local url=$(printf 'http://chart.googleapis.com/chart?cht=tx&chl=%s\n' $(urlencode "$1"))
-    printf '<img src="%s" style="border:none;" alt="%s" />\n' "$url" "$1"
+    printf '<img src="%s" style="border:none;" alt="%s" />\n' "$url" "$1" | c
     # imgcat <(curl -s "$url")
     o $url
 }
@@ -251,19 +251,34 @@ compdef g=git
 
 # git diff
 
-alias gdc='git diff --cached'
+alias gdc='git diff --cached --ignore-all-space --ignore-blank-lines'
+alias gDc='git diff --cached'
+alias gdh='git diff HEAD --ignore-all-space --ignore-blank-lines'
+alias gDh='git diff HEAD'
+alias gdorigin='git diff --ignore-all-space --ignore-blank-lines origin/$(git_current_branch)'
+alias gDorigin='git diff origin/$(git_current_branch)'
+
 function gds() {
     if [ $# -eq 0 ]; then
-        2=@
-        1=@^
+        2=HEAD
+        1='HEAD^'
+    elif [ $# -eq 1 ]; then
+        2="$1"
+        1="$1^"
+    fi
+    git diff "$@" --ignore-all-space --ignore-blank-lines
+}
+
+function gDs() {
+    if [ $# -eq 0 ]; then
+        2=HEAD
+        1='HEAD^'
     elif [ $# -eq 1 ]; then
         2="$1"
         1="$1^"
     fi
     git diff "$@"
 }
-alias gdh='git diff HEAD'
-alias gdorigin='git diff origin/$(git_current_branch)'
 
 # git status
 
