@@ -223,9 +223,10 @@ toc() {
     command doctoc --notitle "$@" && sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
 }
 
-# create formula image by TeX
+# generate an image showing a mathematical formula, using the TeX language by Google Charts
+# https://developers.google.com/chart/infographics/docs/formulas
 fml() {
-    local url=$(printf 'http://chart.googleapis.com/chart?cht=tx&chl=%s\n' $(urlencode "$1"))
+    local url=$(printf 'http://chart.googleapis.com/chart?cht=tx&chf=bg,s,00000000&chl=%s\n' $(urlencode "$1"))
     printf '<img src="%s" style="border:none;" alt="%s" />\n' "$url" "$1" | c
     # imgcat <(curl -s "$url")
     o $url
