@@ -22,7 +22,6 @@ which gdircolors &> /dev/null && {
     eval `gdircolors -b <(gdircolors --print-database)`
 }
 
-
 # User configuration
 export MANPATH="/usr/local/opt/coreutils/libexec/gnuman:$MANPATH"
 #export MANPATH="$(find /usr/local/Cellar -maxdepth 4 -type d -name man | tr '\n' :)$MANPATH"
@@ -54,11 +53,7 @@ alias du='du -h'
 alias df='df -h'
 alias ll='ls -lh'
 alias tailf='tail -f'
-alias diff=colordiff
 alias D=colordiff
-# D() {
-#     diff "$@" | diff-so-fancy | less --tabs=4 -RFX
-# }
 
 alias grep='grep --color=auto --exclude-dir={.git,.hg,.svn,.cvs,bzr,CVS,target,build,_site,.idea,Pods,taobao-tomcat} --exclude=\*.{ipr,iml,iws,jar,war,zip}'
 export GREP_COLOR='07;31'
@@ -90,7 +85,7 @@ alias d="dirs -v | head | tr '\t' ' ' | colines"
 
 alias v=vim
 alias 'v-'='vim -'
-alias 'vv'='vim -'
+alias vv='col -b | vim -'
 alias vw=view
 alias vd=vimdiff
 # http://stackoverflow.com/questions/14307086/tab-completion-for-aliased-sub-commands-in-zsh-alias-gco-git-checkout
@@ -102,7 +97,7 @@ alias nv=nvim
 
 alias gv=gvim
 alias 'gv-'='gvim -'
-alias 'gvv'='gvim -'
+alias gvv='gvim -'
 alias gvm=gview
 alias gvd=gvimdiff
 alias note='(cd ~/notes; gvim)'
@@ -122,6 +117,12 @@ export PATH="/usr/local/opt/texinfo/bin:$PATH"
 alias o=open
 alias o.='open .'
 alias o..='open ..'
+
+alias b=brew
+alias bi='brew install'
+alias bri='brew reinstall'
+alias bs='brew search'
+compdef b=brew
 
 # docker
 
@@ -194,12 +195,6 @@ alias t=tmux
 alias tma='exec tmux attach'
 compdef t=tmux
 
-alias b=brew
-alias bi='brew install'
-alias bri='brew reinstall'
-alias bs='brew search'
-compdef b=brew
-
 alias sl=sloccount
 
 # speed up download
@@ -243,6 +238,7 @@ for ext in doc{,x} ppt{,x} xls{,x} key pdf png jp{,e}g htm{,l} m{,k}d markdown t
 done
 
 alias otv=octave-cli
+alias vzshrc='vim ~/.zshrc'
 
 ###############################################################################
 # Git
@@ -252,11 +248,13 @@ compdef g=git
 
 # git diff
 
-alias gdc='git diff --cached --ignore-all-space --ignore-blank-lines'
+alias gd='git diff --ignore-space-change --ignore-space-at-eol --ignore-blank-lines'
+alias gD='git diff'
+alias gdc='gd --cached'
 alias gDc='git diff --cached'
-alias gdh='git diff HEAD --ignore-all-space --ignore-blank-lines'
+alias gdh='gd HEAD'
 alias gDh='git diff HEAD'
-alias gdorigin='git diff --ignore-all-space --ignore-blank-lines origin/$(git_current_branch)'
+alias gdorigin='gd origin/$(git_current_branch)'
 alias gDorigin='git diff origin/$(git_current_branch)'
 
 function gds() {
@@ -267,7 +265,7 @@ function gds() {
         2="$1"
         1="$1^"
     fi
-    git diff "$@" --ignore-all-space --ignore-blank-lines
+    git diff "$@" $__git_diff_ignore_options
 }
 
 function gDs() {
@@ -502,9 +500,10 @@ export JAVA7_HOME=$(echo /Library/Java/JavaVirtualMachines/jdk1.7.0_*.jdk/Conten
 export JAVA8_HOME=$(echo /Library/Java/JavaVirtualMachines/jdk1.8.0_*.jdk/Contents/Home)
 export JAVA9_HOME='/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home'
 # default JAVA_HOME
-export JAVA0_HOME='$HOME/.jenv/candidates/java/current'
+export JAVA0_HOME="$HOME/.jenv/candidates/java/current"
 
 export JAVA_HOME="$JAVA0_HOME"
+export MANPATH="$JAVA_HOME/man:$MANPATH"
 
 # jenv is an awesome tool for managing parallel Versions of Java Development Kits!
 # https://github.com/linux-china/jenv
@@ -559,7 +558,6 @@ mwrapper() {
 ###############################################################################
 
 #export GRADLE_OPTS="-Xmx1024m -Xms256m -XX:MaxPermSize=512m"
-# --daemon
 alias grd='gradle'
 
 # shortcut for executing gradlew:
