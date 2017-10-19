@@ -41,7 +41,7 @@ zle -N fancy-ctrl-z
 bindkey '^Z' fancy-ctrl-z
 
 # how to make ctrl+p behave exactly like up arrow in zsh?
-# http://superuser.com/questions/583583/how-to-make-ctrlp-behave-exactly-like-up-arrow-in-zsh
+# http://superuser.com/questions/583583
 bindkey '^P' up-line-or-search
 bindkey '^N' down-line-or-search
 
@@ -67,6 +67,10 @@ ta() {
     # which buildin command can output the function implementation. COOL!
     which -a "$@"
 }
+# Tab completion for aliased sub commands in zsh: alias gco='git checkout'
+# Reload auto completion
+#   zsh -f && autoload -Uz compinit && compinit
+# http://stackoverflow.com/questions/14307086
 compdef ta=type
 
 # Remove duplicate entries in a file without sorting
@@ -88,10 +92,7 @@ alias 'v-'='vim -'
 alias vv='col -b | vim -'
 alias vw=view
 alias vd=vimdiff
-# http://stackoverflow.com/questions/14307086/tab-completion-for-aliased-sub-commands-in-zsh-alias-gco-git-checkout
-compdef v=vim
 alias vi=vim
-compdef vi=vim
 
 alias nv=nvim
 
@@ -109,8 +110,8 @@ alias vc='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app'
 alias vc.='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app .'
 alias vc..='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app ..'
 
-# find texinfo
-export PATH="/usr/local/opt/texinfo/bin:$PATH"
+# Calibre utils, brew texinfo
+export PATH="/usr/local/opt/texinfo/bin:$PATH:/Applications/calibre.app/Contents/MacOS"
 
 # mac utils
 
@@ -122,7 +123,6 @@ alias b=brew
 alias bi='brew install'
 alias bri='brew reinstall'
 alias bs='brew search'
-compdef b=brew
 
 # docker
 
@@ -193,7 +193,6 @@ capw() {
 
 alias t=tmux
 alias tma='exec tmux attach'
-compdef t=tmux
 
 alias sl=sloccount
 
@@ -201,12 +200,26 @@ alias sl=sloccount
 alias ax='axel -n8'
 alias axl='axel -n16'
 
+lstcp() {
+    lsof -n -P -iTCP ${1:+"-sTCP:$1"}
+}
+
+ilstcp() {
+    local st
+    select st in ESTABLISHED SYN_SENT SYN_RCDV LAST_ACK TIME_WAIT FIN_WAIT1 FIN_WAIT_2 CLOSE_WAIT CLOSING CLOSED LISTEN IDLE BOUND; do
+        [ -n "$st" ] && {
+            lstcp "$st"
+            break
+        }
+    done
+}
+
 # List tcp listen port info(very useful on mac)
 #
 # inhibits the conversion so as to run faster
 #   -P inhibits the conversion of port numbers to port names
 #   -n inhibits the conversion of network numbers to host names
-alias tcplisten='lsof -n -P -iTCP -sTCP:LISTEN'
+alias tcplisten='lstcp LISTEN'
 
 # fpp is an awesome toolkit: https://github.com/facebook/PathPicker
 ## reduce exit time of fpp
@@ -215,7 +228,7 @@ alias p=fpp
 
 # adjust indent for space 4
 toc() {
-    command doctoc --notitle "$@" && sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
+    command doctoc "$@" && sed '/^<!-- START doctoc generated TOC/,/^<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
 }
 
 # generate an image showing a mathematical formula, using the TeX language by Google Charts
@@ -243,8 +256,6 @@ alias vzshrc='vim ~/.zshrc'
 ###############################################################################
 # Git
 ###############################################################################
-
-compdef g=git
 
 # git diff
 
@@ -318,6 +329,12 @@ alias gbrc='git branch -r --contains'
 
 alias gbd='git branch -d'
 alias gbD='git branch -D'
+gbdd() {
+    git branch -d "$@" && git push -d origin "$@"
+}
+gbDD() {
+    git branch -D "$@" && git push -d origin "$@"
+}
 
 # git add
 
@@ -520,6 +537,12 @@ alias j0='export JAVA_HOME=$JAVA0_HOME'
 
 alias scl='scala -Dscala.color -feature'
 
+export JREBEL_HOME=$HOME/Applications/jrebel7.0.2
+
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export ANDROID_SDK_HOME=$ANDROID_HOME
+export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
+export PATH="$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/tools"
 
 ###############################################################################
 # Maven
@@ -532,10 +555,13 @@ alias mi='mvn install -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=
 alias mio='mvn install -o -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked'
 alias mci='mvn clean && mvn install -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked'
 alias mcio='mvn clean && mvn install -o -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked'
+alias mcdeploy='mvn clean && mvn deploy -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release'
+
 alias mdt='mvn dependency:tree'
 alias mds='mvn dependency:sources'
+alias mdc='mvn dependency:copy-dependencies -DincludeScope=runtime'
+
 alias mcv='mvn versions:display-dependency-updates versions:display-plugin-updates versions:display-property-updates'
-alias mcdeploy='mvn clean && mvn deploy -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release'
 
 # Update project version
 muv() {
@@ -709,9 +735,7 @@ source $HOME/.rvm/scripts/rvm
 ###############################################################################
 
 alias r2=rebar
-compdef r2=rebar
 alias r3=rebar3
-# compdef r3=rebar3
 
 # Run erlang MFA(Module-Function-Args) conveniently
 erun() {
@@ -780,7 +804,7 @@ _jb_ide() {
 alias idea='_jb_ide IDEA-U'
 #alias apcd='open -a /Applications/AppCode.app'
 alias apc='_jb_ide AppCode'
-alias ads='open -a /Applications/Android\ Studio.app'
+alias ads='open -a /Applications/Android\ Studio*.app'
 
 #alias pyc='open -a /Applications/PyCharm.app'
 alias pyc='_jb_ide PyCharm-P'
