@@ -1,10 +1,19 @@
 ###############################################################################
+# helper functions
+###############################################################################
+
+logAndRun() {
+    echo "$@"
+    "$@"
+}
+
+###############################################################################
 # Env settings
 ###############################################################################
 
 export EDITOR=vim
-#export SHELL=/bin/bash
 export LANG=en_US.UTF-8
+export LC_CTYPE=UTF-8
 export LESS="${LESS}iXF"
 export WINEDEBUG=-all
 
@@ -45,6 +54,11 @@ bindkey '^Z' fancy-ctrl-z
 bindkey '^P' up-line-or-search
 bindkey '^N' down-line-or-search
 
+# open file with default application
+for ext in doc{,x} ppt{,x} xls{,x} key pdf png jp{,e}g htm{,l} m{,k}d markdown asta txt xml xmind java c{,pp} .h{,pp}; do
+    alias -s $ext=open
+done
+
 ### shell alias ###
 
 # core utils
@@ -52,8 +66,11 @@ bindkey '^N' down-line-or-search
 alias du='du -h'
 alias df='df -h'
 alias ll='ls -lh'
+alias lls='ll -Sr'
+alias llt='ll -tr'
 alias tailf='tail -f'
 alias D=colordiff
+compdef coat=cat
 
 alias grep='grep --color=auto --exclude-dir={.git,.hg,.svn,.cvs,bzr,CVS,target,build,_site,.idea,Pods,taobao-tomcat} --exclude=\*.{ipr,iml,iws,jar,war,zip}'
 export GREP_COLOR='07;31'
@@ -78,37 +95,51 @@ compdef ta=type
 alias uq="awk '!x[\$0]++'"
 
 # ReStart SHell
-alias rsh='exec $SHELL -l'
+# How to reset a shell environment? https://unix.stackexchange.com/questions/14885
+rsh() {
+    exec env -i \
+        TERM=$TERM TERM_PROGRAM=$TERM_PROGRAM TERM_PROGRAM_VERSION=$TERM_PROGRAM_VERSION TERM_SESSION_ID=$TERM_SESSION_ID \
+        ITERM_PROFILE=$ITERM_PROFILE ITERM_SESSION_ID=$ITERM_SESSION_ID \
+        TMUX=$TMUX TMUX_PANE=$TMUX_PANE \
+        XPC_FLAGS=$XPC_FLAGS XPC_SERVICE_NAME=$XPC_SERVICE_NAME \
+        __CF_USER_TEXT_ENCODING=$__CF_USER_TEXT_ENCODING \
+        Apple_PubSub_Socket_Render=$Apple_PubSub_Socket_Render \
+        SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
+        USER=$USER LOGNAME=$LOGNAME SHELL=$SHELL \
+        TMPDIR=$TMPDIR DISPLAY=$DISPLAY COLORFGBG=$COLORFGBG \
+        "$@" \
+        zsh --login -i
+}
 
-# zsh/oh-my-zsh
+### zsh/oh-my-zsh redefinition ###
 
 # improve alias d of oh-my-zsh: colorful lines, near index number and dir name(more convenient for human eyes)
-alias d="dirs -v | head | tr '\t' ' ' | colines"
+alias d="dirs -v | head | tr '\t' ' ' | coat"
 
 # editor
 
-alias v=vim
-alias 'v-'='vim -'
-alias vv='col -b | vim -'
-alias vw=view
-alias vd=vimdiff
-alias vi=vim
+alias v=nvim
+alias nv=vim
+alias vi=v
 
-alias nv=nvim
+alias 'v-'='v -'
+alias vv='col -b | v -'
+alias vw='v -R'
+alias vd='v -d'
 
 alias gv=gvim
-alias 'gv-'='gvim -'
-alias gvv='gvim -'
-alias gvm=gview
-alias gvd=gvimdiff
-alias note='(cd ~/notes; gvim)'
+alias 'gv-'='gv -'
+alias gvv='col -b | gv -'
+alias gvw='gv -R'
+alias gvd='gv -d'
+alias note='(cd ~/notes; gv)'
 
 alias a='atom'
 alias a.='atom .'
 alias a..='atom ..'
-alias vc='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app'
-alias vc.='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app .'
-alias vc..='open -a /Applications/Visual\ Studio\ Code\ -\ Insiders.app ..'
+alias vc='open -a /Applications/Visual\ Studio\ Code.app'
+alias vc.='open -a /Applications/Visual\ Studio\ Code.app .'
+alias vc..='open -a /Applications/Visual\ Studio\ Code.app ..'
 
 # Calibre utils, brew texinfo
 export PATH="/usr/local/opt/texinfo/bin:$PATH:/Applications/calibre.app/Contents/MacOS"
@@ -120,7 +151,12 @@ alias o.='open .'
 alias o..='open ..'
 
 alias b=brew
-alias bi='brew install'
+alias bi='brew info'
+alias bh='brew home'
+alias bls='brew list'
+
+alias bin='brew install'
+alias bui='brew uninstall'
 alias bri='brew reinstall'
 alias bs='brew search'
 
@@ -160,7 +196,7 @@ alias dkimg='docker images'
 alias dkp='docker pull'
 alias dksh='docker search'
 
-dkcleanupimg() {
+dkcleanimg() {
     local images="$(docker images | awk 'NR>1 && $2=="<none>" {print $3}')"
     [ -z "$images" ] && {
         echo "No images need to cleanup!"
@@ -177,7 +213,7 @@ dkupimg() {
         return
     }
 
-    echo "$images" | xargs --no-run-if-empty -n1 docker pull
+    echo "$images" | sort -u | xargs --no-run-if-empty -n1 docker pull
 }
 
 # my utils
@@ -195,10 +231,13 @@ alias t=tmux
 alias tma='exec tmux attach'
 
 alias sl=sloccount
+alias ts=trash
 
 # speed up download
 alias ax='axel -n8'
 alias axl='axel -n16'
+
+alias pc='proxychains4 -q'
 
 lstcp() {
     lsof -n -P -iTCP ${1:+"-sTCP:$1"}
@@ -228,7 +267,7 @@ alias p=fpp
 
 # adjust indent for space 4
 toc() {
-    command doctoc "$@" && sed '/^<!-- START doctoc generated TOC/,/^<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
+    command doctoc --notitle "$@" && sed '/^<!-- START doctoc generated TOC/,/^<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
 }
 
 # generate an image showing a mathematical formula, using the TeX language by Google Charts
@@ -242,16 +281,8 @@ fml() {
 
 alias pt=pstree
 
-alias asma=asciinema
-alias asma2gif='docker run --rm -v $PWD:/data asciinema/asciicast2gif -s2 -S1 -t monokai'
-
-# open file with default application
-for ext in doc{,x} ppt{,x} xls{,x} key pdf png jp{,e}g htm{,l} m{,k}d markdown txt xml xmind java c{,pp} .h{,pp}; do
-    alias -s $ext=open
-done
-
 alias otv=octave-cli
-alias vzshrc='vim ~/.zshrc'
+alias vzshrc='v ~/.zshrc'
 
 ###############################################################################
 # Git
@@ -261,12 +292,14 @@ alias vzshrc='vim ~/.zshrc'
 
 alias gd='git diff --ignore-space-change --ignore-space-at-eol --ignore-blank-lines'
 alias gD='git diff'
+
 alias gdc='gd --cached'
-alias gDc='git diff --cached'
+alias gDc='gD --cached'
 alias gdh='gd HEAD'
-alias gDh='git diff HEAD'
+alias gDh='gD HEAD'
+
 alias gdorigin='gd origin/$(git_current_branch)'
-alias gDorigin='git diff origin/$(git_current_branch)'
+alias gDorigin='gD origin/$(git_current_branch)'
 
 function gds() {
     if [ $# -eq 0 ]; then
@@ -276,7 +309,7 @@ function gds() {
         2="$1"
         1="$1^"
     fi
-    git diff "$@" $__git_diff_ignore_options
+    gd "$@" $__git_diff_ignore_options
 }
 
 function gDs() {
@@ -287,7 +320,7 @@ function gDs() {
         2="$1"
         1="$1^"
     fi
-    git diff "$@"
+    gD "$@"
 }
 
 # git status
@@ -394,7 +427,29 @@ gbw() {
     open "$url"
 }
 
-alias sg='open -a /Applications/SmartGit.app'
+heaveyOpenFileByApp() {
+    [ $# -eq 0 ] && {
+        echo "at least 1 app args" 1>&2
+        exit 1
+    }
+
+    readonly app="$1"
+    shift
+    [ $# -eq 0 ] && readonly files=(.) || readonly files=("$@")
+
+    local -a absolute_files
+    local f
+    for f in "${files[@]}"; do
+        absolute_files=("${absolute_files[@]}" $(readlink -f "$f"))
+    done
+
+    logAndRun open --new -a "$app" --args "${absolute_files[@]}"
+}
+
+# Smart Git
+alias sg='heaveyOpenFileByApp /Applications/SmartGit.app'
+# Smart Diff
+alias sd='heaveyOpenFileByApp /Applications/SmartSynchronize.app'
 
 ## URL shower/switcher
 
@@ -448,7 +503,8 @@ chgr() {
 #   It merges upstream changes by default, when it's really more polite to rebase over them, unless your collaborators enjoy a commit graph that looks like bedhead.
 #   It only updates the branch you're currently on, which means git push will shout at you for being behind on branches you don't particularly care about right now.
 # Solve them once and for all.
-alias gu='git-up'
+# alias gu='git-up'
+alias gu='git pull --rebase --autostash'
 
 # git up recursively
 # Usage: gur [<dir1>  [<dir2> ...]]
@@ -515,11 +571,13 @@ swJavaNetProxy() {
 export JAVA6_HOME='/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home'
 export JAVA7_HOME=$(echo /Library/Java/JavaVirtualMachines/jdk1.7.0_*.jdk/Contents/Home)
 export JAVA8_HOME=$(echo /Library/Java/JavaVirtualMachines/jdk1.8.0_*.jdk/Contents/Home)
-export JAVA9_HOME='/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home'
+export JAVA9_HOME=$(echo /Library/Java/JavaVirtualMachines/jdk-9.*.jdk/Contents/Home)
 # default JAVA_HOME
 export JAVA0_HOME="$HOME/.jenv/candidates/java/current"
 
 export JAVA_HOME="$JAVA0_HOME"
+
+export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Duser.language=en -Duser.country=US"
 export MANPATH="$JAVA_HOME/man:$MANPATH"
 
 # jenv is an awesome tool for managing parallel Versions of Java Development Kits!
@@ -544,11 +602,13 @@ export ANDROID_SDK_HOME=$ANDROID_HOME
 export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
 export PATH="$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/tools"
 
+alias jad='jad -nonlb -space -ff -s java'
+
 ###############################################################################
 # Maven
 ###############################################################################
 
-export MAVEN_OPTS="-Xmx512m"
+export MAVEN_OPTS="${MAVEN_OPTS:+$MAVEN_OPTS }-Xmx512m -Duser.language=en -Duser.country=US"
 
 alias mc='mvn clean'
 alias mi='mvn install -Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked'
@@ -575,8 +635,11 @@ muv() {
 # create maven wrapper
 # http://mvnrepository.com/artifact/io.takari/maven
 mwrapper() {
-    local version=${1:-3.5.0}
-    mvn -N io.takari:maven:0.4.3:wrapper -Dmaven="$version"
+    local run_mvn_version="$(mvn -v | awk '/^Apache Maven/ {print $3}')"
+
+    local wrapper_mvn_version="${1:-$run_mvn_version}"
+    # http://mvnrepository.com/artifact/io.takari/maven
+    mvn -N io.takari:maven:0.5.0:wrapper -Dmaven="$wrapper_mvn_version"
 }
 
 ###############################################################################
@@ -787,16 +850,21 @@ _jb_ide() {
     (
         cd $JB_TOOL_HOME
         local -a candidates=("$ide"/*/*/*.app)
-        cd "$OLDPWD"
-        [ "$#candidates[@]" -gt 1 ] && {
+        cd -
+        local count="$#candidates[@]"
+        if (( count == 0 )); then
+            echo "No candidates!"
+        elif (( count == 1 )); then
+            logAndRun open -a "$JB_TOOL_HOME/$candidates" "$@"
+        else
             echo "Find multi candidates!"
             select ide in "$candidates[@]" ; do
                 [ -n "$ide" ] && {
-                    [ -n "$ide" ] && open -a "$JB_TOOL_HOME/$ide" "$@"
+                    [ -n "$ide" ] && logAndRun open -a "$JB_TOOL_HOME/$ide" "$@"
                     break
                 }
             done
-        } || open -a "$JB_TOOL_HOME/$candidates" "$@"
+        fi
     )
 }
 
@@ -821,10 +889,11 @@ alias mps='_jb_ide MPS'
 jb() {
     (
         cd $JB_TOOL_HOME
-        select ide in */*/*/*.app ; do
+        local -a candidates=(*/*/*/*.app)
+        cd -
+        select ide in "$candidates[@]" ; do
             [ -n "$ide" ] && {
-                cd "$OLDPWD"
-                [ -n "$ide" ] && open -a "$JB_TOOL_HOME/$ide" "$@"
+                [ -n "$ide" ] && logAndRun open -a "$JB_TOOL_HOME/$ide" "$@"
                 break
             }
         done
