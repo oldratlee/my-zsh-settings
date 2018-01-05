@@ -17,6 +17,11 @@ export LC_CTYPE=UTF-8
 export LESS="${LESS}iXF"
 export WINEDEBUG=-all
 
+# append brew man
+export MANPATH="$(cat $ZSH_CACHE_DIR/man_path_cache):$MANPATH"
+
+# Calibre utils, brew texinfo
+export PATH="/usr/local/opt/texinfo/bin:$PATH:/Applications/calibre.app/Contents/MacOS"
 
 ###############################################################################
 # Shell Imporvement
@@ -30,10 +35,6 @@ which gdircolors &> /dev/null && {
     alias ls='ls -F --show-control-chars --color=auto'
     eval `gdircolors -b <(gdircolors --print-database)`
 }
-
-# User configuration
-export MANPATH="/usr/local/opt/coreutils/libexec/gnuman:$MANPATH"
-#export MANPATH="$(find /usr/local/Cellar -maxdepth 4 -type d -name man | tr '\n' :)$MANPATH"
 
 # Use Ctrl-Z to switch back to backgroud proccess(eg: Vim)
 # https://sheerun.net/2014/03/21/how-to-boost-your-vim-productivity/
@@ -53,6 +54,21 @@ bindkey '^Z' fancy-ctrl-z
 # http://superuser.com/questions/583583
 bindkey '^P' up-line-or-search
 bindkey '^N' down-line-or-search
+
+# Ubuntu’s command-not-found equivalent for Homebrew on macOS
+# https://github.com/Homebrew/homebrew-command-not-found
+if [ -e "$ZSH/cache/homebrew-command-not-found-init" ]; then
+    eval "$(cat "$ZSH/cache/homebrew-command-not-found-init")"
+
+    (( $(date -r "$ZSH/cache/homebrew-command-not-found-init" +%s) < $(date -d 'now - 7 days' +%s) )) && (
+        touch "$ZSH/cache/homebrew-command-not-found-init"
+        # backgroud proccess that run in subshell will not output job control message
+        brew command-not-found-init > "$ZSH/cache/homebrew-command-not-found-init" &
+    )
+else
+    # backgroud proccess that run in subshell will not output job control message
+    ( brew command-not-found-init > "$ZSH/cache/homebrew-command-not-found-init" & )
+fi
 
 # open file with default application
 for ext in doc{,x} ppt{,x} xls{,x} key pdf png jp{,e}g htm{,l} m{,k}d markdown asta txt xml xmind java c{,pp} .h{,pp}; do
@@ -140,9 +156,6 @@ alias a..='atom ..'
 alias vc='open -a /Applications/Visual\ Studio\ Code.app'
 alias vc.='open -a /Applications/Visual\ Studio\ Code.app .'
 alias vc..='open -a /Applications/Visual\ Studio\ Code.app ..'
-
-# Calibre utils, brew texinfo
-export PATH="/usr/local/opt/texinfo/bin:$PATH:/Applications/calibre.app/Contents/MacOS"
 
 # mac utils
 
