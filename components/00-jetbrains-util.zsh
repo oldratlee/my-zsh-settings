@@ -52,7 +52,7 @@ alias rdr='_jb_ide Rider'
 alias dtg='_jb_ide datagrip'
 alias mps='_jb_ide MPS'
 
-jb() {
+___jb() {
     (
         cd $JB_TOOL_HOME
         local -a candidates=(*/*/*/*.app)

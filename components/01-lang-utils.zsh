@@ -1,21 +1,63 @@
 ###############################################################################
-# Javascript
+# Go
 ###############################################################################
 
-# NVM: https://github.com/creationix/nvm
-#
-# NVM init is slowwwwww! about 1.2s on my machine!!
-# manually activate when needed.
-export PATH="$HOME/.nvm/versions/node/v8.1.2/bin:$PATH"
-anvm() {
-    export NVM_DIR="$HOME/.nvm"
-    source "/usr/local/opt/nvm/nvm.sh"
-    source <(npm completion)
+export GOPATH=$HOME/.go
+export PATH=$PATH:$GOPATH/bin
+
+###############################################################################
+# Rust
+###############################################################################
+
+export PATH=$HOME/.cargo/bin:$PATH
+
+###############################################################################
+# Erlang
+###############################################################################
+
+alias r2=rebar
+alias r3=rebar3
+
+# Run erlang MFA(Module-Function-Args) conveniently
+erun() {
+    if [ $# -lt 2 ]; then
+        echo "Error: at least 2 args!"
+        return 1
+    fi
+    erl -s "$@" -s init stop -noshell
 }
+
+# Run erlang one-line script conveniently
+erline() {
+    if [ $# -ne 1 ]; then
+        echo "Error: Only need 1 arg!"
+        return 1
+    fi
+    erl -eval "$1" -s init stop -noshell
+}
+
+
+###############################################################################
+# Lisp
+###############################################################################
+
+CLISP_DOC=/usr/local/opt/clisp/share/doc/clisp/doc
+
+alias schm='rlwrap -p 1\;32 -r -c -f $HOME/.scheme_completion.rlwrap scheme'
+
+###############################################################################
+# Prolog
+###############################################################################
+
+alias sp='swipl'
+alias gpl='gprolog'
+alias bp='$HOME/Applications/BProlog/bp'
 
 ###############################################################################
 # Python
 ###############################################################################
+
+export PATH="$HOME/.anaconda3/bin:$PATH"
 
 # activate/deactivate anaconda3
 #aa() {
@@ -65,6 +107,7 @@ dae() {
 ZSH_PIP_INDEXES='http://pypi.douban.com/simple/'
 
 alias py=python
+unalias ipython
 alias ipy=ipython --matplotlib
 alias nb='LANGUAGE="" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-notebook'
 alias lab='LANGUAGE="" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-lab'
@@ -119,56 +162,23 @@ relink_virtualenv() {
 
 
 ###############################################################################
-# Go
-###############################################################################
-
-export GOPATH=$HOME/.gopath
-export PATH=$PATH:$GOPATH/bin
-
-###############################################################################
 # Ruby
 ###############################################################################
 
 #source $HOME/.rvm/scripts/rvm
 
 ###############################################################################
-# Erlang
+# Javascript
 ###############################################################################
 
-alias r2=rebar
-alias r3=rebar3
+# NVM: https://github.com/creationix/nvm
+#
+# NVM init is slowwwwww! about 1.2s on my machine!!
+# manually activate when needed.
+#export PATH="$HOME/.nvm/versions/node/v8.1.2/bin:$PATH"
+#anvm() {
+#    export NVM_DIR="$HOME/.nvm"
+#    source "/usr/local/opt/nvm/nvm.sh"
+#    source <(npm completion)
+#}
 
-# Run erlang MFA(Module-Function-Args) conveniently
-erun() {
-    if [ $# -lt 2 ]; then
-        echo "Error: at least 2 args!"
-        return 1
-    fi
-    erl -s "$@" -s init stop -noshell
-}
-
-# Run erlang one-line script conveniently
-erline() {
-    if [ $# -ne 1 ]; then
-        echo "Error: Only need 1 arg!"
-        return 1
-    fi
-    erl -eval "$1" -s init stop -noshell
-}
-
-
-###############################################################################
-# Lisp
-###############################################################################
-
-CLISP_DOC=/usr/local/Cellar/clisp/2.49/share/doc/clisp/doc
-
-alias schm='rlwrap -p 1\;32 -r -c -f $HOME/.scheme_completion.rlwrap scheme'
-
-###############################################################################
-# Prolog
-###############################################################################
-
-alias sp='swipl'
-alias gpl='gprolog'
-alias bp='$HOME/Applications/BProlog/bp'

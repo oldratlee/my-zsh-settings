@@ -60,6 +60,7 @@ alias gs='git status -s' # I never use gs command but will mistype :)
 
 alias gg='glog -15'
 alias ggg='glgg -4'
+alias gggg='glgg -5'
 
 ## git branch
 
@@ -192,10 +193,7 @@ __heaveyOpenFileByApp() {
     logAndRun open --new -a "$app" --args "${absolute_files[@]}"
 }
 
-# Smart Git
-alias sg='__heaveyOpenFileByApp /Applications/SmartGit.app'
-# Smart Diff
-alias sd='__heaveyOpenFileByApp /Applications/SmartSynchronize.app'
+alias st='open -a /Applications/Sourcetree.app "$(git rev-parse --show-toplevel || echo .)"'
 
 ## URL shower/switcher
 
@@ -270,8 +268,7 @@ gur() {
 
     local -a failedDirs=()
 
-    local f
-    local d
+    local f d
     for f in "${files[@]}" ; do
         [ -d "$f" ] || {
             echo

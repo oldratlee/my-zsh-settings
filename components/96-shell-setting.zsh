@@ -13,6 +13,7 @@ SAVEHIST=50000
 # append brew man
 #export MANPATH="$(cat $ZSH_CACHE_DIR/man_path_cache):$MANPATH"
 
+export PATH="$HOME/bin:$HOME/bin/useful-scripts/bin:$PATH"
 # Calibre utils, brew texinfo
 #export PATH="/usr/local/opt/texinfo/bin:$PATH:/Applications/calibre.app/Contents/MacOS"
 
@@ -109,7 +110,7 @@ alias vv='col -b | v -'
 alias vw='v -R'
 alias vd='v -d'
 
-alias gv=/Applications/MacVim.app/Contents/bin/mvim
+alias gv=gvim
 alias 'gv-'='gv -'
 alias gvv='col -b | gv -'
 alias gvw='gv -R'
@@ -131,12 +132,16 @@ alias o..='open ..'
 
 alias b=brew
 alias bi='brew info'
+alias bci='brew cask info'
 alias bh='brew home'
 alias bls='brew list'
 
 alias bin='brew install'
+alias bcin='brew cask install'
 alias bui='brew uninstall'
+alias bcui='brew cask uninstall'
 alias bri='brew reinstall'
+alias bcri='brew cask reinstall'
 alias bs='brew search'
 
 ### zsh/oh-my-zsh redefinition ###
@@ -217,13 +222,16 @@ alias otv=octave-cli
 ### my utils ###
 
 alias cap='c ap'
+#
 # print and copy full path of command bin
 capw() {
     local arg
     for arg; do
-        ap "$(which "$arg")" | c
+        ap "$(whence -p "$arg")" | c
     done
 }
+compdef capw=type
+
 compdef coat=cat
 alias awl=a2l
 

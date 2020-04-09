@@ -7,42 +7,53 @@ export_java_homes() {
     #export JAVA6_HOME='/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home'
     export JAVA6_HOME="$HOME/.sdkman/candidates/java/1.6"
     export JAVA6HOME="$JAVA6_HOME"
-    export JDK_16="$JAVA6_HOME"
+    export JDK6_HOME="$JAVA6_HOME"
+    export JDK_6="$JAVA6_HOME"
 
-    export JAVA7_HOME=$(a2l $HOME/.sdkman/candidates/java/7.* | tail -1)
+    export JAVA7_HOME=$(command ls -d $HOME/.sdkman/candidates/java/7.* | tail -1)
     export JAVA7HOME="$JAVA7_HOME"
+    export JDK7_HOME="$JAVA7_HOME"
     export JDK_17="$JAVA7_HOME"
+    export JDK_7="$JAVA7_HOME"
 
-    export JAVA8_HOME=$(a2l $HOME/.sdkman/candidates/java/8.* | tail -1)
+    export JAVA8_HOME=$(command ls -d $HOME/.sdkman/candidates/java/8.* | tail -1)
     export JAVA8HOME="$JAVA8_HOME"
+    export JDK8_HOME="$JAVA8_HOME"
     export JDK_8="$JAVA8_HOME"
 
-    export JAVA9_HOME=$(a2l $HOME/.sdkman/candidates/java/9.* | tail -1)
+    export JAVA9_HOME=$(command ls -d $HOME/.sdkman/candidates/java/9.* | tail -1)
     export JAVA9HOME="$JAVA9_HOME"
+    export JDK9_HOME="$JAVA9_HOME"
     export JDK_9="$JAVA9_HOME"
 
-    export JAVA10_HOME=$(a2l $HOME/.sdkman/candidates/java/10.* | tail -1)
+    export JAVA10_HOME=$(command ls -d $HOME/.sdkman/candidates/java/10.* | tail -1)
     export JAVA10HOME="$JAVA10_HOME"
+    export JDK10_HOME="$JAVA10_HOME"
     export JDK_10="$JAVA10_HOME"
 
-    export JAVA11_HOME=$(a2l $HOME/.sdkman/candidates/java/11.* | tail -1)
+    export JAVA11_HOME=$(command ls -d $HOME/.sdkman/candidates/java/11.* | tail -1)
     export JAVA11HOME="$JAVA11_HOME"
+    export JDK11_HOME="$JAVA11_HOME"
     export JDK_11="$JAVA11_HOME"
 
-    export JAVA12_HOME=$(a2l $HOME/.sdkman/candidates/java/12.* | tail -1)
+    export JAVA12_HOME=$(command ls -d $HOME/.sdkman/candidates/java/12.* | tail -1)
     export JAVA12HOME="$JAVA12_HOME"
+    export JDK12_HOME="$JAVA12_HOME"
     export JDK_12="$JAVA12_HOME"
 
-    export JAVA13_HOME=$(a2l $HOME/.sdkman/candidates/java/13* | tail -1)
+    export JAVA13_HOME=$(command ls -d $HOME/.sdkman/candidates/java/13* | tail -1)
     export JAVA13HOME="$JAVA13_HOME"
+    export JDK13_HOME="$JAVA13_HOME"
     export JDK_13="$JAVA13_HOME"
 
-    export JAVA14_HOME=$(a2l $HOME/.sdkman/candidates/java/14* | tail -1)
+    export JAVA14_HOME=$(command ls -d $HOME/.sdkman/candidates/java/14* | tail -1)
     export JAVA14HOME="$JAVA14_HOME"
+    export JDK14_HOME="$JAVA14_HOME"
     export JDK_14="$JAVA14_HOME"
 
-    export JAVA15_HOME=$(a2l $HOME/.sdkman/candidates/java/15* | tail -1)
+    export JAVA15_HOME=$(command ls -d $HOME/.sdkman/candidates/java/15* | tail -1)
     export JAVA15HOME="$JAVA15_HOME"
+    export JDK15_HOME="$JAVA15_HOME"
     export JDK_15="$JAVA15_HOME"
 
     # default JAVA_HOME
@@ -94,11 +105,21 @@ swJavaNetProxy() {
     }
 }
 
-alias scl='scala -Dscala.color -feature'
-
 export JREBEL_HOME=$HOME/Applications/jrebel7.0.2
 
+export PATH="$HOME/.sdkman/candidates/gatling/3.3.1/bin:$PATH"
+
+###############################################################################
+# Scala
+###############################################################################
+
+alias scl='scala -Dscala.color -feature'
+
+
+###############################################################################
 # Android
+###############################################################################
+
 #export ANDROID_HOME=$HOME/Library/Android/sdk
 #export ANDROID_SDK_HOME=$ANDROID_HOME
 #export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle

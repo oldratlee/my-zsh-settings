@@ -16,12 +16,10 @@ logAndRun() {
 # Find local bin first to execute; if not found, then the fallback global bin.
 # Util funtion for executing wrapper(gradlew, mvnw, etc), find wrapper automatically and execute.
 function find_local_bin_or_default_to_run() {
-    local local_bin="$1"
-    local default_bin="$2"
+    local local_bin="$1" default_bin="$2"
     shift 2
 
-    local d="$PWD"
-    local target
+    local d="$PWD" target
     while true; do
         [ "/" = "$d" ] && {
             target="$(whence -p $default_bin)"
@@ -61,15 +59,10 @@ compdef whl=time
 # source components
 ###############################
 
-___plugin_dir_name___="$(dirname "$0")"
+___my_setting_plugin_dir_name___="$(dirname "$0")"
 
-source "$___plugin_dir_name___/"components/shell-setting.zsh
-source "$___plugin_dir_name___/"components/git-utils.zsh
+for ___my_setting_plugin_name___ in "$___my_setting_plugin_dir_name___/components"/*; do
+    source "$___my_setting_plugin_name___"
+done
 
-source "$___plugin_dir_name___/"components/java-utils.zsh
-source "$___plugin_dir_name___/"components/jetbrains-util.zsh
-source "$___plugin_dir_name___/"components/lang-utils.zsh
-
-source "$___plugin_dir_name___/"components/docker-helper.zsh
-
-unset ___plugin_dir_name___
+unset ___my_setting_plugin_dir_name___ ___my_setting_plugin_name___
