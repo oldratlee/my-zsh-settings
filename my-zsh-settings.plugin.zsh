@@ -13,10 +13,10 @@ logAndRun() {
     "$@"
 }
 
-# shortcut for executing gradlew, mvnw, etc
-# find wrapper automatically and execute.
-function find_bin_or_default_then_run() {
-    local bin="$1"
+# Find local bin first to execute; if not found, then the fallback global bin.
+# Util funtion for executing wrapper(gradlew, mvnw, etc), find wrapper automatically and execute.
+function find_local_bin_or_default_to_run() {
+    local local_bin="$1"
     local default_bin="$2"
     shift 2
 
@@ -25,12 +25,12 @@ function find_bin_or_default_then_run() {
     while true; do
         [ "/" = "$d" ] && {
             target="$(whence -p $default_bin)"
-            echoInteractiveInfo "use default: $target" 2>&1
+            echoInteractiveInfo "use default bin $default_bin: $target"
             break
         }
-        [ -f "$d/$bin" ] && {
-            target="$(realpath "$d" --relative-to="$PWD")/$bin"
-            echoInteractiveInfo "use $bin: $target" 2>&1
+        [ -f "$d/$local_bin" ] && {
+            target="$(realpath "$d" --relative-to="$PWD")/$local_bin"
+            echoInteractiveInfo "use local bin $local_bin: $target"
             break
         }
         d=`dirname "$d"`

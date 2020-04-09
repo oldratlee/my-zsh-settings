@@ -129,7 +129,7 @@ alias mdg='mvn com.github.ferstl:depgraph-maven-plugin:3.3.0:aggregate -DgraphFo
 
 unalias mvn &> /dev/null
 function mvn() {
-    find_bin_or_default_then_run mvnw mvn "$@"
+    find_local_bin_or_default_to_run mvnw mvn "$@"
 }
 
 # Update project version
@@ -164,7 +164,7 @@ mmd() {
 ###############################################################################
 
 function gradle() {
-    find_bin_or_default_then_run gradlew gradle "$@"
+    find_local_bin_or_default_to_run gradlew gradle "$@"
 }
 
 #export GRADLE_OPTS="-Xmx1024m -Xms256m -XX:MaxPermSize=512m"
@@ -204,5 +204,5 @@ alias sgrdm="jps -mlvV | awk '\$2==\"org.gradle.launcher.daemon.bootstrap.Gradle
 ###############################################################################
 
 lein() {
-    LEIN_USE_BOOTCLASSPATH=y find_bin_or_default_then_run lein lein "$@"
+    LEIN_USE_BOOTCLASSPATH=y find_local_bin_or_default_to_run lein lein "$@"
 }
