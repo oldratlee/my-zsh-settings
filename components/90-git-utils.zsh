@@ -82,7 +82,7 @@ __gbb() {
 
 __gbB() {
     [ -t 1 ] && local force_color_option=--color
-    __gb $force_color_option "$@" | __git_remove_bkp_rel_branches
+    __gb $force_color_option "$@" | __git_output_local_branch
 }
 
 alias gbt='__gbb -a'
@@ -94,7 +94,13 @@ alias gbTl='__gbB'
 
 # How to list branches that contain a given commit?
 # http://stackoverflow.com/questions/1419623
-alias gbc='git branch --contains'
+gbc() {
+    echo "contained branches:"
+    git branch --contains "$@"
+    echo
+    echo "contained tags:"
+    git tag --contains "$@"
+}
 alias gbrc='git branch -r --contains'
 alias gbac='git branch -a --contains'
 
@@ -193,25 +199,41 @@ __heaveyOpenFileByApp() {
     logAndRun open --new -a "$app" --args "${absolute_files[@]}"
 }
 
-alias st='open -a /Applications/Sourcetree.app "$(git rev-parse --show-toplevel || echo .)"'
+st() {
+    (( $# == 0 )) && local -a files=( . ) || local -a files=( "$@" )
+    local f isFisrt=false
+    for f in "${files[@]}"; do
+        $isFisrt && isFisrt=false || echo
+        (
+            cd "${f}"
+            local git_root
+            git_root="$(git rev-parse --show-toplevel)" || {
+                echo "Error: $PWD($f) is NOT a git repo!"
+                return 2
+            }
+            open -a /Applications/Sourcetree.app "$git_root"
+            echo "open $git_root ( $f )"
+        )
+    done
+}
 
 ## URL shower/switcher
 
 # show swithed git repo addr(git <=> http)
 shg() {
-    local url="${1:-$(git remote get-url origin)}"
+    local -r url="${1:-$(git remote get-url origin)}"
     if [ -z "$url" ]; then
         echo "No arguement and Not a git repository!"
         return 1
     fi
 
     if [[ "$url" =~ '^http' ]]; then
-        url=$(echo "$url" | sed -r 's#^https?://#git@#
+        local -r url2=$(echo "$url" | sed -r 's#^https?://#git@#
             s#(\.com|\.org)/#\1:#
             s#(\.git)?$#\.git#'
         )
     else
-        url=$(echo "$url" | sed -r '
+        local -r url2=$(echo "$url" | sed -r '
             s#^git@#http://#
             s#http://github.com#https://github.com#
             s#(\.com|\.org):#\1/#
@@ -219,7 +241,8 @@ shg() {
         )
     fi
 
-    echo "$url" | c
+    echo "$url"
+    echo "$url2" | c
 }
 # show git repo addr http addr recursively
 shgr() {
@@ -227,7 +250,8 @@ shgr() {
     for d in `find -iname .git -type d`; do
         (
             cd $d/..
-            echo "$PWD : $(git remote get-url origin)"
+            echo "\n$PWD :"
+            shg
         )
     done
 }

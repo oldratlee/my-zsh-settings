@@ -56,6 +56,11 @@ export_java_homes() {
     export JDK15_HOME="$JAVA15_HOME"
     export JDK_15="$JAVA15_HOME"
 
+    export JAVA16_HOME=$(command ls -d $HOME/.sdkman/candidates/java/16* | tail -1)
+    export JAVA16HOME="$JAVA16_HOME"
+    export JDK16_HOME="$JAVA16_HOME"
+    export JDK_16="$JAVA16_HOME"
+
     # default JAVA_HOME
     export JAVA0_HOME="$HOME/.sdkman/candidates/java/current"
 
@@ -83,6 +88,7 @@ alias jx2='setjvhm $JAVA12_HOME'
 alias jx3='setjvhm $JAVA13_HOME'
 alias jx4='setjvhm $JAVA14_HOME'
 alias jx5='setjvhm $JAVA15_HOME'
+alias jx6='setjvhm $JAVA16_HOME'
 alias j0='setjvhm $JAVA0_HOME'
 
 alias jvp='javap -J-Duser.language=en -J-Duser.country=US -cp .'
@@ -141,11 +147,22 @@ alias mcio="mc && mio"
 alias mcdeploy="mc && mvn deploy $__mvn__options"
 
 alias mdt='mvn dependency:tree'
-alias mds='mvn dependency:sources'
-alias mcd='mvn dependency:copy-dependencies -DincludeScope=runtime'
-alias mcdt='mvn dependency:copy-dependencies -DincludeScope=test'
+mmdt() {
+    mdt -B "$@" | tee mdt-origin.log |
+        command grep '(\+-|\\-).*:.*:|Building ' --line-buffered -E | tee mdt.log |
+        command grep --line-buffered -v ':test$' | tee mdt-exclude-test.log
+}
 
-alias mcv='mvn versions:display-dependency-updates versions:display-plugin-updates versions:display-property-updates'
+alias mds='mvn dependency:sources'
+alias mdc='mvn dependency:copy-dependencies -DincludeScope=runtime'
+alias mdt='mvn dependency:copy-dependencies -DincludeScope=test'
+
+# Check dependencies update
+alias mcv='mvn versions:display-dependency-updates versions:display-plugin-updates versions:display-property-updates -DperformRelease'
+mmcv() {
+    mcv -B "$@" | tee mcv-origin.log |
+        command grep -- '\[INFO\].*->' | sort -k4,4V -k2,2 -u | tee mcv.log
+}
 alias mdg='mvn com.github.ferstl:depgraph-maven-plugin:3.3.0:aggregate -DgraphFormat=puml'
 
 unalias mvn &> /dev/null
@@ -170,6 +187,19 @@ mwrapper() {
     )}"
     # http://mvnrepository.com/artifact/io.takari/maven
     command mvn -N io.takari:maven:0.7.7:wrapper -Dmaven="$wrapper_mvn_version"
+}
+
+
+# Runs duplicate check on the maven classpaths
+# https://github.com/basepom/duplicate-finder-maven-plugin
+alias mcd='mvn org.basepom.maven:duplicate-finder-maven-plugin:1.4.0:check'
+
+mmcd() {
+    mcd -B "$@" | tee mcd-origin.log | sed -n '
+        /^\[WARNING\] Found duplicate /,/^\[INFO\] /p
+        /^\[INFO\] Building /p
+        /^\[INFO\] Checking .* classpath/p
+    ' | tee mcd.log
 }
 
 mmd() {

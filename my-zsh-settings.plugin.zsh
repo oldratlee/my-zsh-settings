@@ -38,15 +38,20 @@ function find_local_bin_or_default_to_run() {
 }
 
 whl() {
+    local loopEvenSuccess=false
+    [[ '-f' = "$1" ]] && loopEvenSuccess=true
     local counter=0
     while true ; do
         ((counter++))
 
         echoInteractiveInfo "$counter try:\n\t$@\n"
-        "$@" && break
+
+        if "$@" && ! $loopEvenSuccess ; then
+            break
+        fi
 
         sleep 0.5
-        echechoInteractiveInfo
+        echoInteractiveInfo
     done
 
     echoInteractiveInfo

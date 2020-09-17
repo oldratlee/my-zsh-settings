@@ -117,12 +117,11 @@ alias gvw='gv -R'
 alias gvd='gv -d'
 alias note='(cd ~/notes; gv)'
 
-alias a='atom'
-alias a.='atom .'
-alias a..='atom ..'
-alias vc='open -a ~/Applications/Visual\ Studio\ Code.app'
-alias vc.='vc .'
-alias vc..='vc ..'
+function vc {
+    (( $# == 0 )) && local -a files=( . ) || local -a files=( "$@" )
+    open -a "$HOME/Applications/Visual Studio Code.app" "${files[@]}"
+    echo "open ${files[@]}"
+}
 
 ### mac utils ###
 
@@ -131,10 +130,14 @@ alias o.='open .'
 alias o..='open ..'
 
 alias b=brew
+
 alias bi='brew info'
 alias bci='brew cask info'
-alias bh='brew home'
 alias bls='brew list'
+alias bcls='brew cask list'
+
+alias bs='brew search'
+alias bh='brew home'
 
 alias bin='brew install'
 alias bcin='brew cask install'
@@ -142,7 +145,6 @@ alias bui='brew uninstall'
 alias bcui='brew cask uninstall'
 alias bri='brew reinstall'
 alias bcri='brew cask reinstall'
-alias bs='brew search'
 
 ### zsh/oh-my-zsh redefinition ###
 
