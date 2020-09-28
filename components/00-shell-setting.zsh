@@ -101,26 +101,29 @@ compdef ta=type
 
 ### editor ###
 
-alias v=vim
-alias nv=nvim
-alias vi=v
+alias vi=vim
 
-alias 'v-'='v -'
+alias v=vim
 alias vv='col -b | v -'
 alias vw='v -R'
 alias vd='v -d'
 
+alias nv=nvim
+alias nvv='col -b | nv -'
+alias nvw='nv -R'
+alias nvd='nv -d'
+
 alias gv=gvim
-alias 'gv-'='gv -'
 alias gvv='col -b | gv -'
 alias gvw='gv -R'
 alias gvd='gv -d'
+
 alias note='(cd ~/notes; gv)'
 
 function vc {
     (( $# == 0 )) && local -a files=( . ) || local -a files=( "$@" )
     open -a "$HOME/Applications/Visual Studio Code.app" "${files[@]}"
-    echo "open ${files[@]}"
+    echo "Visual Studio Code open ${files[@]}"
 }
 
 ### mac utils ###
@@ -129,12 +132,14 @@ alias o=open
 alias o.='open .'
 alias o..='open ..'
 
+
+export HOMEBREW_NO_AUTO_UPDATE=1
+
 alias b=brew
 
 alias bi='brew info'
 alias bci='brew cask info'
 alias bls='brew list'
-alias bcls='brew cask list'
 
 alias bs='brew search'
 alias bh='brew home'
@@ -255,3 +260,18 @@ rsh() {
         "$@" \
         zsh --login -i
 }
+
+
+#######################################
+# shell util functions
+#######################################
+
+
+warnEcho() {
+    $is_console && echo "\033[1;33;44m$*\033[0m" || echo "$*"
+}
+
+errorEcho() {
+    $is_console && echo "\033[0;31;46m$*\033[0m" || echo "$*"
+}
+

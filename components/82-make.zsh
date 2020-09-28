@@ -10,6 +10,6 @@ cmb() {
         cmake --build build --target "$@"
     fi
 }
-compdef cmb=cmake
+#compdef cmb=cmake
 
 alias cmc='cmb clean'

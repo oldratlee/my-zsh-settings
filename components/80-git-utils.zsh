@@ -18,14 +18,14 @@ alias gDorigin='gD origin/$(git_current_branch)'
 
 #unalias gds
 function gds() {
-    if [ $# -eq 0 ]; then
-        2=HEAD
+    if (( $# -eq 0 )); then
         1='HEAD^'
-    elif [ $# -eq 1 ]; then
-        2="$1"
+        2=HEAD
+    elif (( $# -eq 1 )); then
         1="$1^"
+        2="$1"
     fi
-    gd "$@" $__git_diff_ignore_options
+    logAndRun gd "$@"
 }
 
 function gdss() {
@@ -64,7 +64,7 @@ alias gggg='glgg -5'
 
 ## git branch
 
-alias __git_remove_bkp_rel_branches='sed -r "/->/b; /\/tags\//d; /\/releases\//d; /\/backups?\//d; /\/bkps?\//d"'
+alias __git_remove_bkp_rel_branches='sed -r "/->/b; /\/tags\//d; /\/releases\//d"'
 alias __git_output_local_branch='sed -r "/->/b; s#remotes/([^/]+)/(.*)#remotes/\1/\2 => \2#"'
 
 __gb() {
@@ -292,32 +292,35 @@ gur() {
 
     local -a failedDirs=()
 
-    local f d
+    local f d isFisrt=true idx=0
     for f in "${files[@]}" ; do
         [ -d "$f" ] || {
-            echo
-            echo "================================================================================"
-            echo "$f is not a directory, ignore and skip!!"
+            $isFisrt && isFisrt=false || echo
+
+            errorEcho "$f is not a directory, ignore and skip!!"
             continue
         }
+
         find "$f" -maxdepth 5 -iname .git -type d | while read d; do
+            $isFisrt && isFisrt=false || echo
+
             d="$(readlink -f "$d/..")"
+            warnEcho "$((++idx)): Update Git repo: $(basename "$d")"
             (
                 cd "$d" && {
-                    echo
-                    echo "================================================================================"
-                    echo -e "Update Git repo:\n\trepo path: $PWD\n\trepo url: $(git remote get-url origin)"
+                    echo -e "\trepo path: $PWD\n\trepo url: $(git remote get-url origin)"
                     gu
                 }
             ) || failedDirs=( "${failedDirs[@]}" "$d")
         done
+
+        isFisrt=false
     done
 
     if [ "${#failedDirs[@]}" -gt 0 ]; then
         echo
         echo
-        echo "================================================================================"
-        echo "Failed dirs:"
+        errorEcho "Failed dirs:"
         local idx=0
         for d in "${failedDirs[@]}"; do
             echo "    $((++idx)): $d"
