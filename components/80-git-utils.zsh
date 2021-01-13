@@ -16,38 +16,65 @@ alias gDh='gD HEAD'
 alias gdorigin='gd origin/$(git_current_branch)'
 alias gDorigin='gD origin/$(git_current_branch)'
 
-#unalias gds
-function gds() {
-    if (( $# -eq 0 )); then
-        1='HEAD^'
-        2=HEAD
-    elif (( $# -eq 1 )); then
-        1="$1^"
-        2="$1"
+#unalias gdl
+function gdl() {
+    local from to
+    if [ $# -eq 0 ]; then
+        from='HEAD^'
+        to=HEAD
+    elif [ $# -eq 1 ]; then
+        from="$1^"
+        to="$1"
+    elif [ $# -eq 2 ]; then
+        from="$1"
+        to="$2"
     fi
-    logAndRun gd "$@"
+    gd "$from" "$to"
 }
 
-function gdss() {
+function gdls() {
+    local from to
     if [ $# -eq 0 ]; then
-        2=HEAD
-        1='HEAD^'
+        from='HEAD^'
+        to=HEAD
     elif [ $# -eq 1 ]; then
-        2="$1"
-        1="$1^"
+        from="$1^"
+        to="$1"
+    elif [ $# -eq 2 ]; then
+        from="$1"
+        to="$2"
     fi
-    gd --stat "$@"
+    gd "$from" "$to" --stat
 }
 
-function gDs() {
+function gDl() {
+    local from to
     if [ $# -eq 0 ]; then
-        2=HEAD
-        1='HEAD^'
+        from='HEAD^'
+        to=HEAD
     elif [ $# -eq 1 ]; then
-        2="$1"
-        1="$1^"
+        from="$1^"
+        to="$1"
+    elif [ $# -eq 2 ]; then
+        from="$1"
+        to="$2"
     fi
-    gD "$@"
+    gD "$from" "$to"
+}
+
+function gDls() {
+    local from to
+    if [ $# -eq 0 ]; then
+        from='HEAD^'
+        to=HEAD
+    elif [ $# -eq 1 ]; then
+        from="$1^"
+        to="$1"
+    elif [ $# -eq 2 ]; then
+        from="$1"
+        to="$2"
+    fi
+    gD "$from" "$to" --stat
 }
 
 # git status
@@ -60,7 +87,7 @@ alias gs='git status -s' # I never use gs command but will mistype :)
 
 alias gg='glog -15'
 alias ggg='glgg -4'
-alias gggg='glgg -5'
+alias gggg='glgg -6'
 
 ## git branch
 
@@ -168,6 +195,8 @@ alias lg='lazygit'
 gbw() {
     # git browse
     local url="${1:-$(git remote get-url origin)}"
+    [ -n "$url" ] || return 1
+
     if ! [[ "$url" =~ '^http' ]]; then
         url=$(echo "$url" | sed -r '
             s%:%/%
@@ -201,9 +230,9 @@ __heaveyOpenFileByApp() {
 
 st() {
     (( $# == 0 )) && local -a files=( . ) || local -a files=( "$@" )
-    local f isFisrt=false
+    local f isFirst=true
     for f in "${files[@]}"; do
-        $isFisrt && isFisrt=false || echo
+        $isFirst && isFirst=false || echo
         (
             cd "${f}"
             local git_root
@@ -212,7 +241,7 @@ st() {
                 return 2
             }
             open -a /Applications/Sourcetree.app "$git_root"
-            echo "open $git_root ( $f )"
+            echo "Sourcetree open $git_root ( $f )"
         )
     done
 }
@@ -247,10 +276,10 @@ shg() {
 # show git repo addr http addr recursively
 shgr() {
     local d
-    for d in `find -iname .git -type d`; do
+    for d in `find -maxdepth 6 -iname .git`; do
         (
-            cd $d/..
-            echo "\n$PWD :"
+            cd "$(dirname $d)"
+            warnEcho "\n$PWD :"
             shg
         )
     done
@@ -258,9 +287,9 @@ shgr() {
 # change git repo addr http addr recursively
 chgr() {
     local d
-    for d in `find -iname .git -type d`; do
+    for d in `find -maxdepth 6 -iname .git`; do
         (
-            cd $d/..
+            cd "$(dirname $d)"
             # echo "Found $PWD"
             local url=$(git remote get-url origin)
             [[ "$url" =~ '^http'  ]] && {
@@ -287,24 +316,23 @@ alias gu='git-up && git fetch --tags'
 # git up recursively
 # Usage: gur [<dir1>  [<dir2> ...]]
 gur() {
-    local -a files
-    [ $# -eq 0 ] && files=(.) || files=("$@")
+    [ $# -eq 0 ] && local -a files=(.) || local -a files=("$@")
 
     local -a failedDirs=()
 
-    local f d isFisrt=true idx=0
+    local f d isFirst=true idx=0
     for f in "${files[@]}" ; do
         [ -d "$f" ] || {
-            $isFisrt && isFisrt=false || echo
+            $isFirst && isFirst=false || echo
 
             errorEcho "$f is not a directory, ignore and skip!!"
             continue
         }
 
-        find "$f" -maxdepth 5 -iname .git -type d | while read d; do
-            $isFisrt && isFisrt=false || echo
+        find "$f" -maxdepth 6 -iname .git -type d -follow | while read d; do
+            $isFirst && isFirst=false || echo
 
-            d="$(readlink -f "$d/..")"
+            d="$(readlink -f "$(dirname $d)")"
             warnEcho "$((++idx)): Update Git repo: $(basename "$d")"
             (
                 cd "$d" && {
@@ -313,8 +341,6 @@ gur() {
                 }
             ) || failedDirs=( "${failedDirs[@]}" "$d")
         done
-
-        isFisrt=false
     done
 
     if [ "${#failedDirs[@]}" -gt 0 ]; then

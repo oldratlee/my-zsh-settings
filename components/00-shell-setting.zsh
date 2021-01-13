@@ -68,6 +68,8 @@ alias llv='ll -v'
 alias llt='ll -tr'
 alias llr='ll -r'
 
+alias rr=ranger
+
 alias tailf='tail -f'
 alias btee='col -b | tee'
 compdef btee=tee
@@ -170,7 +172,7 @@ alias axl='axel -n16'
 
 # fpp is an awesome toolkit: https://github.com/facebook/PathPicker
 ## reduce exit time of fpp
-alias fpp='SHELL=sh fpp'
+alias fpp='SHELL=/bin/bash fpp'
 alias p=fpp
 
 alias pc='proxychains4 -q'
@@ -260,18 +262,3 @@ rsh() {
         "$@" \
         zsh --login -i
 }
-
-
-#######################################
-# shell util functions
-#######################################
-
-
-warnEcho() {
-    $is_console && echo "\033[1;33;44m$*\033[0m" || echo "$*"
-}
-
-errorEcho() {
-    $is_console && echo "\033[0;31;46m$*\033[0m" || echo "$*"
-}
-

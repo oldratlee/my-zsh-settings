@@ -2,8 +2,16 @@
 # Util functions
 ###############################################################################
 
+warnEcho() {
+    $is_console && echo "\033[1;33;44m$*\033[0m" || echo "$*"
+}
+
+errorEcho() {
+    $is_console && echo "\033[1;36;41m$*\033[0m" || echo "$*"
+}
+
 echoInteractiveInfo() {
-    [ -t 2 ] && echo "$@" 1>&2
+    [ -t 2 ] && warnEcho "$@" 1>&2
 }
 
 logAndRun() {
@@ -11,6 +19,12 @@ logAndRun() {
     echoInteractiveInfo
 
     "$@"
+}
+
+debugAndRun() {
+    set -x
+    "$@"
+    set +x
 }
 
 # Find local bin first to execute; if not found, then the fallback global bin.
@@ -71,3 +85,5 @@ for ___my_setting_plugin_name___ in "$___my_setting_plugin_dir_name___/component
 done
 
 unset ___my_setting_plugin_dir_name___ ___my_setting_plugin_name___
+
+neofetch

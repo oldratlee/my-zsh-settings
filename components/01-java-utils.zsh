@@ -2,67 +2,53 @@
 # Java/JVM Languages
 ###############################################################################
 
-export_java_homes() {
+__getLatestJavaHomeForVersion() {
+    local version="$1"
+    {
+    command ls -d $HOME/.sdkman/candidates/java/"$version".* |
+        grep -vF '.fx-' |
+        tail -1
+    } 2> /dev/null
+}
+
+export_java_env_vars() {
     #export JAVA_HOME=$(/usr/libexec/java_home -v 1.6)
     #export JAVA6_HOME='/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home'
     export JAVA6_HOME="$HOME/.sdkman/candidates/java/1.6"
     export JAVA6HOME="$JAVA6_HOME"
+
     export JDK6_HOME="$JAVA6_HOME"
     export JDK_6="$JAVA6_HOME"
+    export JDK_16="$JAVA6_HOME"
+    alias j6='setjvhm $JAVA6_HOME'
 
-    export JAVA7_HOME=$(command ls -d $HOME/.sdkman/candidates/java/7.* | tail -1)
-    export JAVA7HOME="$JAVA7_HOME"
-    export JDK7_HOME="$JAVA7_HOME"
-    export JDK_17="$JAVA7_HOME"
-    export JDK_7="$JAVA7_HOME"
+    local jv_version jv_home
+    for jv_version in {7..42}; do
+        jv_home=$(__getLatestJavaHomeForVersion $jv_version)
+        [ -n "$jv_home" ] || continue
 
-    export JAVA8_HOME=$(command ls -d $HOME/.sdkman/candidates/java/8.* | tail -1)
-    export JAVA8HOME="$JAVA8_HOME"
-    export JDK8_HOME="$JAVA8_HOME"
-    export JDK_8="$JAVA8_HOME"
+        eval export JAVA"$jv_version"_HOME="'$jv_home'"
+        eval export JAVA"$jv_version"HOME="'$jv_home'"
 
-    export JAVA9_HOME=$(command ls -d $HOME/.sdkman/candidates/java/9.* | tail -1)
-    export JAVA9HOME="$JAVA9_HOME"
-    export JDK9_HOME="$JAVA9_HOME"
-    export JDK_9="$JAVA9_HOME"
+        eval export JDK"$jv_version"_HOME="'$jv_home'"
+        eval export JDK_"$jv_version"="'$jv_home'"
 
-    export JAVA10_HOME=$(command ls -d $HOME/.sdkman/candidates/java/10.* | tail -1)
-    export JAVA10HOME="$JAVA10_HOME"
-    export JDK10_HOME="$JAVA10_HOME"
-    export JDK_10="$JAVA10_HOME"
+        # add JAVA_HOME switcher, j9, j16
+        eval "alias j${jv_version}='setjvhm \$JAVA${jv_version}_HOME'"
 
-    export JAVA11_HOME=$(command ls -d $HOME/.sdkman/candidates/java/11.* | tail -1)
-    export JAVA11HOME="$JAVA11_HOME"
-    export JDK11_HOME="$JAVA11_HOME"
-    export JDK_11="$JAVA11_HOME"
-
-    export JAVA12_HOME=$(command ls -d $HOME/.sdkman/candidates/java/12.* | tail -1)
-    export JAVA12HOME="$JAVA12_HOME"
-    export JDK12_HOME="$JAVA12_HOME"
-    export JDK_12="$JAVA12_HOME"
-
-    export JAVA13_HOME=$(command ls -d $HOME/.sdkman/candidates/java/13* | tail -1)
-    export JAVA13HOME="$JAVA13_HOME"
-    export JDK13_HOME="$JAVA13_HOME"
-    export JDK_13="$JAVA13_HOME"
-
-    export JAVA14_HOME=$(command ls -d $HOME/.sdkman/candidates/java/14* | tail -1)
-    export JAVA14HOME="$JAVA14_HOME"
-    export JDK14_HOME="$JAVA14_HOME"
-    export JDK_14="$JAVA14_HOME"
-
-    export JAVA15_HOME=$(command ls -d $HOME/.sdkman/candidates/java/15* | tail -1)
-    export JAVA15HOME="$JAVA15_HOME"
-    export JDK15_HOME="$JAVA15_HOME"
-    export JDK_15="$JAVA15_HOME"
-
-    export JAVA16_HOME=$(command ls -d $HOME/.sdkman/candidates/java/16* | tail -1)
-    export JAVA16HOME="$JAVA16_HOME"
-    export JDK16_HOME="$JAVA16_HOME"
-    export JDK_16="$JAVA16_HOME"
+        if ((jv_version < 10)); then
+            eval export JDK_$((jv_version + 10))="'$jv_home'"
+        else
+            # JAVA_HOME switcher
+            local jv_version_x=$((jv_version - 10))
+            (( jv_version_x == 0 )) && jv_version_x=
+            eval "alias jx${jv_version_x}='setjvhm \$JAVA${jv_version}_HOME'"
+        fi
+    done
 
     # default JAVA_HOME
     export JAVA0_HOME="$HOME/.sdkman/candidates/java/current"
+    alias j0='setjvhm $JAVA0_HOME'
 
     export JAVA_HOME="$JAVA0_HOME"
     #export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Duser.language=en -Duser.country=US"
@@ -70,26 +56,12 @@ export_java_homes() {
     export MANPATH="$JAVA_HOME/man:$MANPATH"
 }
 
-export_java_homes
+export_java_env_vars
 
 # set JAVA_HOME
 setjvhm(){
     export JAVA_HOME="$1"
 }
-
-# JAVA_HOME switcher
-alias j6='setjvhm $JAVA6_HOME'
-alias j7='setjvhm $JAVA7_HOME'
-alias j8='setjvhm $JAVA8_HOME'
-alias j9='setjvhm $JAVA9_HOME'
-alias jx='setjvhm $JAVA10_HOME'
-alias jx1='setjvhm $JAVA11_HOME'
-alias jx2='setjvhm $JAVA12_HOME'
-alias jx3='setjvhm $JAVA13_HOME'
-alias jx4='setjvhm $JAVA14_HOME'
-alias jx5='setjvhm $JAVA15_HOME'
-alias jx6='setjvhm $JAVA16_HOME'
-alias j0='setjvhm $JAVA0_HOME'
 
 alias jvp='javap -J-Duser.language=en -J-Duser.country=US -cp .'
 alias jvpp='javap -J-Duser.language=en -J-Duser.country=US -cp . -p'
@@ -138,24 +110,35 @@ alias scl='scala -Dscala.color -feature'
 
 export MAVEN_OPTS="${MAVEN_OPTS:+$MAVEN_OPTS }-Xmx768m -Duser.language=en -Duser.country=US"
 
-__mvn__options='-Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked -DappName=faked'
-alias mc="mvn clean $__mvn__options"
-alias mi="mvn install $__mvn__options"
+unalias mvn &> /dev/null
+function mvn() {
+    find_local_bin_or_default_to_run mvnw mvn "$@"
+}
+
+# quick and dirty mode
+__mvn_qdm_options='-Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked -DappName=faked'
+
+alias mvnq="mvn $__mvn_qdm_options"
+alias mc="mvnq clean"
+alias mi="mvnq install"
 alias mio="mi -o"
 alias mci="mc && mi"
 alias mcio="mc && mio"
-alias mcdeploy="mc && mvn deploy $__mvn__options"
+alias mcdeploy="mc && mvnq deploy"
 
-alias mdt='mvn dependency:tree'
+mdt() {
+    mvn dependency:tree
+}
 mmdt() {
-    mdt -B "$@" | tee mdt-origin.log |
+    logAndRun mdt -B "$@" | tee mdt-origin.log |
         command grep '(\+-|\\-).*:.*:|Building ' --line-buffered -E | tee mdt.log |
-        command grep --line-buffered -v ':test$' | tee mdt-exclude-test.log
+        command grep --line-buffered -Pv ':test( \(version managed|$)' | tee mdt-exclude-test.log
 }
 
 alias mds='mvn dependency:sources'
+
 alias mdc='mvn dependency:copy-dependencies -DincludeScope=runtime'
-alias mdt='mvn dependency:copy-dependencies -DincludeScope=test'
+alias mdct='mvn dependency:copy-dependencies -DincludeScope=test'
 
 # Check dependencies update
 alias mcv='mvn versions:display-dependency-updates versions:display-plugin-updates versions:display-property-updates -DperformRelease'
@@ -165,18 +148,13 @@ mmcv() {
 }
 alias mdg='mvn com.github.ferstl:depgraph-maven-plugin:3.3.0:aggregate -DgraphFormat=puml'
 
-unalias mvn &> /dev/null
-function mvn() {
-    find_local_bin_or_default_to_run mvnw mvn "$@"
-}
-
 # Update project version
 muv() {
     [ $# -ne 1 ] && {
-        echo "Only 1 argument for verson!"
+        echo "Only 1 argument for version!"
         exit 1
     }
-    mvn org.codehaus.mojo:versions-maven-plugin:2.7:set -DgenerateBackupPoms=false -DnewVersion="$1"
+    mvn org.codehaus.mojo:versions-maven-plugin:2.8.1:set -DgenerateBackupPoms=false -DnewVersion="$1"
 }
 # create maven wrapper
 # http://mvnrepository.com/artifact/io.takari/maven
@@ -188,7 +166,6 @@ mwrapper() {
     # http://mvnrepository.com/artifact/io.takari/maven
     command mvn -N io.takari:maven:0.7.7:wrapper -Dmaven="$wrapper_mvn_version"
 }
-
 
 # Runs duplicate check on the maven classpaths
 # https://github.com/basepom/duplicate-finder-maven-plugin

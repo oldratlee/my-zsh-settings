@@ -10,7 +10,7 @@ disableAppSecurity() {
     done
 
     {
-        sleep 1m
+        sleep 30
         sudo spctl --master-enable
     } &
 }

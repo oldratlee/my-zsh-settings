@@ -4,7 +4,7 @@
 
 # JetBrains Toolbox: The right tool for the job — every time!
 # https://www.jetbrains.com/toolbox/
-JB_TOOL_HOME="$HOME/Library/Application Support/JetBrains/Toolbox/apps"
+JB_TOOLBOX_HOME="$HOME/Library/Application Support/JetBrains/Toolbox/apps"
 
 _jb_ide() {
     local ide="$1"
@@ -13,19 +13,19 @@ _jb_ide() {
     local f
     for f in "${files[@]}"
     (
-        cd $JB_TOOL_HOME
+        cd $JB_TOOLBOX_HOME
         local -a candidates=("$ide"/*/*/*.app)
         cd -
         local count="$#candidates[@]"
         if (( count == 0 )); then
             echo "No candidates!"
         elif (( count == 1 )); then
-            logAndRun open -a "$JB_TOOL_HOME/$candidates" "$f"
+            logAndRun open -a "$JB_TOOLBOX_HOME/$candidates" "$f"
         else
             echo "Find multi candidates!"
             select ide in "$candidates[@]" ; do
                 [ -n "$ide" ] && {
-                    [ -n "$ide" ] && logAndRun open -a "$JB_TOOL_HOME/$ide" "$f"
+                    [ -n "$ide" ] && logAndRun open -a "$JB_TOOLBOX_HOME/$ide" "$f"
                     break
                 }
             done
@@ -54,12 +54,12 @@ alias mps='_jb_ide MPS'
 
 ___jb() {
     (
-        cd $JB_TOOL_HOME
+        cd $JB_TOOLBOX_HOME
         local -a candidates=(*/*/*/*.app)
         cd -
         select ide in "$candidates[@]" ; do
             [ -n "$ide" ] && {
-                [ -n "$ide" ] && logAndRun open -a "$JB_TOOL_HOME/$ide" "$@"
+                [ -n "$ide" ] && logAndRun open -a "$JB_TOOLBOX_HOME/$ide" "$@"
                 break
             }
         done
