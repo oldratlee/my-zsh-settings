@@ -5,7 +5,7 @@
 
 # git diff
 
-alias gd='git diff --ignore-space-change --ignore-space-at-eol --ignore-blank-lines'
+alias gd='git diff --ignore-cr-at-eol --ignore-space-at-eol --ignore-space-change --ignore-all-space --ignore-blank-lines'
 alias gD='git diff'
 
 alias gdc='gd --cached'
@@ -16,7 +16,6 @@ alias gDh='gD HEAD'
 alias gdorigin='gd origin/$(git_current_branch)'
 alias gDorigin='gD origin/$(git_current_branch)'
 
-#unalias gdl
 function gdl() {
     local from to
     if [ $# -eq 0 ]; then
@@ -192,9 +191,26 @@ alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
 alias lg='lazygit'
 
 # misc
+
+# git browse
 gbw() {
-    # git browse
-    local url="${1:-$(git remote get-url origin)}"
+    local url
+    if ((# > 1)); then
+        errorEcho "at most 1 arguemt, too many arguements: $*"
+        return 1
+    elif ((# == 1)); then
+        if [ -d "$1" ]; then
+            [ ! -d "$1/.git" ] && {
+                errorEcho "dir $1 is not git repo!"
+                return 1
+            }
+            url=$(cd "$1" && git remote get-url origin)
+        else
+            url=$1
+        fi
+    else # $# == 0
+        url=$(git remote get-url origin)
+    fi
     [ -n "$url" ] || return 1
 
     if ! [[ "$url" =~ '^http' ]]; then

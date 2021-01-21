@@ -7,28 +7,39 @@
 JB_TOOLBOX_HOME="$HOME/Library/Application Support/JetBrains/Toolbox/apps"
 
 _jb_ide() {
-    local ide="$1"
+    local ide_name="$1"
     shift
-    [ $# -eq 0 ] && local files=(.) || local files=("$@")
-    local f
-    for f in "${files[@]}"
-    (
-        cd $JB_TOOLBOX_HOME
-        local -a candidates=("$ide"/*/*/*.app)
-        cd -
+    local interactive=false
+    [ "$1" = "-i" ] && {
+        interactive=true
+        shift
+    }
+
+    local f ide_vers_dir="$JB_TOOLBOX_HOME/$ide_name"
+    [ $# -eq 0 ] && local -a files=(.) || local -a files=("$@")
+    for f in "${files[@]}"; (
+        cd "$ide_vers_dir"
+        local -a candidates=(*/*/*.app)
+        cd - &>/dev/null
+
         local count="$#candidates[@]"
         if (( count == 0 )); then
             echo "No candidates!"
         elif (( count == 1 )); then
-            logAndRun open -a "$JB_TOOLBOX_HOME/$candidates" "$f"
+            logAndRun open -a "$ide_vers_dir/$candidates" "$f"
         else
-            echo "Find multi candidates!"
-            select ide in "$candidates[@]" ; do
-                [ -n "$ide" ] && {
-                    [ -n "$ide" ] && logAndRun open -a "$JB_TOOLBOX_HOME/$ide" "$f"
-                    break
-                }
-            done
+            if $interactive; then
+                echo "Find multi candidates!"
+                select ide in "${candidates[@]%/*}" ; do
+                    [ -n "$ide" ] && {
+                        [ -n "$ide" ] && logAndRun open -a "$ide_vers_dir/${candidates[REPLY]}" "$f"
+                        break
+                    }
+                done
+            else
+                local lastVersionIde="${candidates[$#candidates]}"
+                logAndRun open -a "$ide_vers_dir/$lastVersionIde" "$f"
+            fi
         fi
     )
 }

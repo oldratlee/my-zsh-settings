@@ -51,8 +51,8 @@ export_java_env_vars() {
     alias j0='setjvhm $JAVA0_HOME'
 
     export JAVA_HOME="$JAVA0_HOME"
-    #export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Duser.language=en -Duser.country=US"
-    export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Duser.language=en -Duser.country=US -Xverify:none"
+    # export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Duser.language=en -Duser.country=US -Xverify:none"
+    export JAVA_OPTS="-Duser.language=en -Duser.country=US -Xverify:none"
     export MANPATH="$JAVA_HOME/man:$MANPATH"
 }
 
@@ -108,23 +108,33 @@ alias scl='scala -Dscala.color -feature'
 # Maven
 ###############################################################################
 
-export MAVEN_OPTS="${MAVEN_OPTS:+$MAVEN_OPTS }-Xmx768m -Duser.language=en -Duser.country=US"
+# export MAVEN_OPTS="${MAVEN_OPTS:+$MAVEN_OPTS }-Xmx768m -Duser.language=en -Duser.country=US"
+export MAVEN_OPTS="-Xmx768m -Duser.language=en -Duser.country=US"
 
 unalias mvn &> /dev/null
 function mvn() {
-    find_local_bin_or_default_to_run mvnw mvn "$@"
+    findLocalBinOrDefaultToRun mvnw mvn "$@"
 }
 
-# quick and dirty mode
-__mvn_qdm_options='-Dmaven.test.skip -Dautoconf.skip -Dautoconfig.skip -Denv=release -Dscm.app.name=faked -DappName=faked'
+# quick and dirty mode(qdm)
+#
+#   apache-rat-plugin : rat.skip
+#   https://creadur.apache.org/rat/apache-rat-plugin/check-mojo.html
+__mvn_qdm_options=(
+    -Dmaven.test.skip
+    -Drat.skip
+    -Dautoconf.skip -Dautoconfig.skip
+    -Denv=release
+    -Dscm.app.name=faked -DappName=faked
+)
 
-alias mvnq="mvn $__mvn_qdm_options"
-alias mc="mvnq clean"
-alias mi="mvnq install"
-alias mio="mi -o"
-alias mci="mc && mi"
-alias mcio="mc && mio"
-alias mcdeploy="mc && mvnq deploy"
+alias mvnq='mvn $__mvn_qdm_options'
+alias mc='mvnq clean'
+alias mi='mvnq install'
+alias mio='mi -o'
+alias mci='mc && mi'
+alias mcio='mc && mio'
+alias mcdeploy='mc && mvnq deploy'
 
 mdt() {
     mvn dependency:tree
@@ -141,7 +151,7 @@ alias mdc='mvn dependency:copy-dependencies -DincludeScope=runtime'
 alias mdct='mvn dependency:copy-dependencies -DincludeScope=test'
 
 # Check dependencies update
-alias mcv='mvn versions:display-dependency-updates versions:display-plugin-updates versions:display-property-updates -DperformRelease'
+alias mcv='mvn versions:display-dependency-updates versions:display-plugin-updates versions:display-property-updates -DperformRelease -U'
 mmcv() {
     mcv -B "$@" | tee mcv-origin.log |
         command grep -- '\[INFO\].*->' | sort -k4,4V -k2,2 -u | tee mcv.log
@@ -191,8 +201,9 @@ mmd() {
 # Gradle
 ###############################################################################
 
+unalias gradle &> /dev/null
 function gradle() {
-    find_local_bin_or_default_to_run gradlew gradle "$@"
+    findLocalBinOrDefaultToRun gradlew gradle "$@"
 }
 
 #export GRADLE_OPTS="-Xmx1024m -Xms256m -XX:MaxPermSize=512m"
@@ -232,5 +243,5 @@ alias sgrdm="jps -mlvV | awk '\$2==\"org.gradle.launcher.daemon.bootstrap.Gradle
 ###############################################################################
 
 lein() {
-    LEIN_USE_BOOTCLASSPATH=y find_local_bin_or_default_to_run lein lein "$@"
+    LEIN_USE_BOOTCLASSPATH=y findLocalBinOrDefaultToRun lein lein "$@"
 }

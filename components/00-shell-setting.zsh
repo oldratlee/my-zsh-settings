@@ -2,9 +2,10 @@
 # Env settings
 ###############################################################################
 
-export EDITOR=vim
 export LANG=en_US.UTF-8
 export LC_CTYPE=UTF-8
+export EDITOR=vim
+
 export WINEDEBUG=-all
 
 HISTSIZE=50000
@@ -81,6 +82,13 @@ alias grep='grep --color=auto --exclude-dir={.git,.hg,.svn,.cvs,bzr,CVS,target,.
 export GREP_COLOR='1;7;33'
 
 export LESS="${LESS}iXF"
+
+mfdd() {
+    local f
+    mdfind "$@" | while IFS= read -r f; do
+        [ -d "$f" ] && echo "$f"
+    done | sort
+}
 
 # Remove duplicate entries in a file without sorting
 # http://www.commandlinefu.com/commands/view/4389
@@ -164,7 +172,7 @@ alias t=tmux
 alias tma='exec tmux attach'
 
 alias sl=sloccount
-alias ts=trash
+alias ts='trash -F'
 
 # speed up download
 alias ax='axel -n8'
