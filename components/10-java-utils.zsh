@@ -93,16 +93,33 @@ export PATH="$HOME/.sdkman/candidates/gatling/3.3.1/bin:$PATH"
 
 alias scl='scala -Dscala.color -feature'
 
+# decompile scala class
+dsc() {
+    local dsc_quit scala_version scala_candidates=~/.sdkman/candidates/scala
+    while (($# > 0)); do
+        [ "$1" = "-q" ] && {
+            dsc_quit=-q
+            shift
+            continue
+        }
+        [ "$1" = "-sv" ] && {
+            scala_version="$1"
+            shift 2
+            continue
+        }
+        break
+    done
 
-###############################################################################
-# Android
-###############################################################################
+    [ -z "${scala_version:-}" ] && {
+        scala_version=$(builtin cd "$scala_candidates" && command ls -v -d *(/) | tail -1)
+    }
 
-#export ANDROID_HOME=$HOME/Library/Android/sdk
-#export ANDROID_SDK_HOME=$ANDROID_HOME
-#export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
-#export PATH="$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/tools"
+    cfr-decompiler --removedeadmethods false \
+        --extraclasspath "$scala_candidates/$scala_version/lib" \
+        "$@" | expand | c ${dsc_quit:-}
+}
 
+alias dscq='dsc -q'
 
 ###############################################################################
 # Maven
@@ -113,7 +130,13 @@ export MAVEN_OPTS="-Xmx768m -Duser.language=en -Duser.country=US"
 
 unalias mvn &> /dev/null
 function mvn() {
-    findLocalBinOrDefaultToRun mvnw mvn "$@"
+    if [ -n "${M2+dummy}" ]; then
+        local M2_BIN="$HOME/.sdkman/candidates/maven/2.2.1/bin/mvn"
+        echoInteractiveInfo "use maven 2: $M2_BIN"
+        logAndRun "$M2_BIN" "$@"
+    else
+        findLocalBinOrDefaultToRun mvnw mvn "$@"
+    fi
 }
 
 # quick and dirty mode(qdm)
@@ -143,6 +166,18 @@ mmdt() {
     logAndRun mdt -B "$@" | tee mdt-origin.log |
         command grep '(\+-|\\-).*:.*:|Building ' --line-buffered -E | tee mdt.log |
         command grep --line-buffered -Pv ':test( \(version managed|$)' | tee mdt-exclude-test.log
+}
+
+
+mda() {
+    mvn dependency:analyze -B "$@" | tee mda-origin.log |
+        command sed -r -n '
+            /^\[INFO\] Building/p
+            /Used undeclared dependencies found:|Unused declared dependencies found:/,/^\[INFO\]/ {
+                /^\[INFO\]/b
+                p
+            }
+        ' | tee mda.log
 }
 
 alias mds='mvn dependency:sources'

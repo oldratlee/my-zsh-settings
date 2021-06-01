@@ -82,11 +82,18 @@ alias gssi='git status -s --ignored'
 alias gsti='git status --ignored'
 alias gs='git status -s' # I never use gs command but will mistype :)
 
+alias gcignore='git check-ignore -v'
+
 # git log
 
 alias gg='glog -15'
 alias ggg='glgg -4'
 alias gggg='glgg -6'
+
+ggonepage() {
+    glog --color "$@" | catOneScreen
+}
+compdef _git ggonepage=git-log
 
 ## git branch
 
@@ -179,14 +186,22 @@ alias gpf='git push -f'
 # compound git command
 
 alias ga.c='git add . && git commit -v'
-alias ga.m='git add . && git commit --amend -v'
-alias ga.mno='git add . && git commit --amend --no-edit'
+alias gaac='git add -A && git commit -v'
 
 alias ga.cp='git add . && git commit -v && git push'
+alias gaacp='git add -A && git commit -v && git push'
+
+
+alias ga.m='git add . && git commit --amend -v'
+alias gaam='git add -A && git commit --amend -v'
+
+alias ga.mno='git add . && git commit --amend --no-edit'
+alias gaamno='git add -A && git commit --amend --no-edit'
 
 alias gampf='git commit --amend --no-edit && git push -f'
-alias ga.cpf='git add . && git commit -v && git push -f'
+
 alias ga.mpf='git add . && git commit --amend --no-edit && git push -f'
+alias gaampf='git add -A && git commit --amend --no-edit && git push -f'
 
 alias lg='lazygit'
 
@@ -273,12 +288,12 @@ shg() {
     fi
 
     if [[ "$url" =~ '^http' ]]; then
-        local -r url2=$(echo "$url" | sed -r 's#^https?://#git@#
+        local -r swithed_url=$(echo "$url" | sed -r 's#^https?://#git@#
             s#(\.com|\.org)/#\1:#
             s#(\.git)?$#\.git#'
         )
     else
-        local -r url2=$(echo "$url" | sed -r '
+        local -r swithed_url=$(echo "$url" | sed -r '
             s#^git@#http://#
             s#http://github.com#https://github.com#
             s#(\.com|\.org):#\1/#
@@ -286,8 +301,11 @@ shg() {
         )
     fi
 
-    echo "$url"
-    echo "$url2" | c
+    if [ -t 1 ]; then
+        echo "$url\n->\n$(echo "$swithed_url" | c)"
+    else
+        echo "$swithed_url"
+    fi
 }
 # show git repo addr http addr recursively
 shgr() {
@@ -332,6 +350,12 @@ alias gu='git-up && git fetch --tags'
 # git up recursively
 # Usage: gur [<dir1>  [<dir2> ...]]
 gur() {
+    local maxdepth="6"
+    if [ "$1" = "-d" ]; then
+        local maxdepth="$2"
+        shift 2
+    fi
+
     [ $# -eq 0 ] && local -a files=(.) || local -a files=("$@")
 
     local -a failedDirs=()
@@ -345,7 +369,8 @@ gur() {
             continue
         }
 
-        find "$f" -maxdepth 6 -iname .git -type d -follow | while read d; do
+        find "$f" -maxdepth $maxdepth -follow -name .git -type d -o \( -name .svn -o -name target \) -prune -false |
+        while read d; do
             $isFirst && isFirst=false || echo
 
             d="$(readlink -f "$(dirname $d)")"

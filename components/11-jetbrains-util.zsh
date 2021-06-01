@@ -4,9 +4,9 @@
 
 # JetBrains Toolbox: The right tool for the job — every time!
 # https://www.jetbrains.com/toolbox/
-JB_TOOLBOX_HOME="$HOME/Library/Application Support/JetBrains/Toolbox/apps"
+JB_IDE_HOME="$HOME/Library/Application Support/JetBrains/Toolbox/apps"
 
-_jb_ide() {
+__jb_ide() {
     local ide_name="$1"
     shift
     local interactive=false
@@ -15,7 +15,7 @@ _jb_ide() {
         shift
     }
 
-    local f ide_vers_dir="$JB_TOOLBOX_HOME/$ide_name"
+    local f ide_vers_dir="$JB_IDE_HOME/$ide_name"
     [ $# -eq 0 ] && local -a files=(.) || local -a files=("$@")
     for f in "${files[@]}"; (
         cd "$ide_vers_dir"
@@ -44,35 +44,31 @@ _jb_ide() {
     )
 }
 
+
+# Open a file in the LightEdit mode﻿
+#   https://www.jetbrains.com/help/idea/lightedit-mode.html
+alias ie='idea -e'
+alias pe='pycharm -e'
+
 #alias idea='open -a /Applications/IntelliJ\ IDEA.app'
-alias idea='_jb_ide IDEA-U'
-#alias idc='_jb_ide IDEA-C'
-#alias apcd='open -a /Applications/AppCode.app'
-alias apc='_jb_ide AppCode'
-alias ads='open -a /Applications/Android\ Studio*.app'
+#alias idc='__jb_ide IDEA-C'
+alias ij='__jb_ide IDEA-U'
+# Command-line interface
+# https://www.jetbrains.com/help/idea/working-with-the-ide-features-from-command-line.html
+
+#alias apc='open -a /Applications/AppCode.app'
+alias apc='__jb_ide AppCode'
+#alias ads='open -a /Applications/Android\ Studio*.app'
+alias ads='__jb_ide AndroidStudio'
 
 #alias pyc='open -a /Applications/PyCharm.app'
-alias pyc='_jb_ide PyCharm-P'
-alias wbs='_jb_ide WebStorm'
-alias rbm='_jb_ide RubyMine'
+alias pyc='__jb_ide PyCharm-P'
+alias wbs='__jb_ide WebStorm'
+alias rbm='__jb_ide RubyMine'
 
-alias cln='_jb_ide CLion'
-alias gol='_jb_ide Goland'
-alias rdr='_jb_ide Rider'
+alias cln='__jb_ide CLion'
+alias gol='__jb_ide Goland'
+alias rdr='__jb_ide Rider'
 
-alias dtg='_jb_ide datagrip'
-alias mps='_jb_ide MPS'
-
-___jb() {
-    (
-        cd $JB_TOOLBOX_HOME
-        local -a candidates=(*/*/*/*.app)
-        cd -
-        select ide in "$candidates[@]" ; do
-            [ -n "$ide" ] && {
-                [ -n "$ide" ] && logAndRun open -a "$JB_TOOLBOX_HOME/$ide" "$@"
-                break
-            }
-        done
-    )
-}
+alias dtg='__jb_ide datagrip'
+alias mps='__jb_ide MPS'

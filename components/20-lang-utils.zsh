@@ -15,8 +15,8 @@ export PATH=$HOME/.cargo/bin:$PATH
 # Erlang
 ###############################################################################
 
-alias r2=rebar
-alias r3=rebar3
+alias rb2=rebar
+alias rb=rebar3
 
 # Run erlang MFA(Module-Function-Args) conveniently
 erun() {
@@ -57,65 +57,71 @@ alias bp='$HOME/Applications/BProlog/bp'
 # Python
 ###############################################################################
 
-export PATH="$HOME/.anaconda3/bin:$PATH"
+# export PATH="$HOME/.miniconda3/bin:$PATH"
 
-# activate/deactivate anaconda3
-#aa() {
-#    declare -f deactivate > /dev/null && {
-#        echo "Activate anaconda3!"
-#
-#        deactivate
-#        # append anaconda3 to PATH
-#        export PATH=$HOME/.anaconda3/bin:$PATH
-#    } || {
-#        echo "Deactivate anaconda3!"
-#
-#        # remove anaconda3 from PATH
-#        export PATH="$(echo "$PATH" | sed 's/:/\n/g' | grep -Fv .anaconda3/bin | paste -s -d:)"
-#        source $HOME/.pyenv/default/bin/activate
-#    }
-#}
+__setupMiniconda3() {
+    # >>> conda initialize >>>
+    # !! Contents within this block are managed by 'conda init' !!
+    local __conda_setup="$("$HOME/.miniconda3/bin/conda" 'shell.zsh' 'hook' 2> /dev/null)"
 
-# activate anaconda environment
-aae() {
+    if [ $? -eq 0 ]; then
+        eval "$__conda_setup"
+    else
+        if [ -f "$HOME/.miniconda3/etc/profile.d/conda.sh" ]; then
+            . "$HOME/.miniconda3/etc/profile.d/conda.sh"
+        else
+            export PATH="$HOME/.miniconda3/bin:$PATH"
+        fi
+    fi
+    # unset __conda_setup
+    # <<< conda initialize <<<
+
+    __setupMiniconda3_mark=true
+}
+
+# activate miniconda3 environment
+ame() {
+    [ -z $__setupMiniconda3_mark ] && __setupMiniconda3
+
     local a_env="$1"
     if [ -n "$a_env" ]; then
-        dae
+        dme
         echo
-        logAndRun source activate "$a_env"
+        #logAndRun source activate "$a_env"
+        logAndRun conda activate "$a_env"
     else
         # select a_env in `conda info --envs | awk '/^[^#]/{print $1}'`; do
-        select a_env in `find $HOME/.anaconda3/envs -maxdepth 1 -mindepth 1 -type d | xargs -n1 basename`; do
+        select a_env in `find $HOME/.miniconda3/envs -maxdepth 1 -mindepth 1 -type d | xargs -n1 basename`; do
             [ -n "$a_env" ] && {
-                dae
+                dme
                 echo
-                logAndRun source activate "$a_env"
+                #logAndRun source activate "$a_env"
+                logAndRun conda activate "$a_env"
                 break
             }
         done
     fi
 }
 
-# deactivate anaconda environment
-dae() {
+# deactivate miniconda3 environment
+dme() {
     [ -n "$CONDA_DEFAULT_ENV" ] && conda deactivate
 }
 
-# activate anaconda3 python
-#export PATH=$HOME/.anaconda3/bin:$PATH
 
 ZSH_PIP_INDEXES='http://pypi.douban.com/simple/'
 
 alias py=python
+alias py3=python3
+
 unalias ipython
 alias ipy=ipython --matplotlib
+alias bpy=bpython
+
 alias nb='LANGUAGE="" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-notebook'
 alias lab='LANGUAGE="" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-lab'
-alias R='R --no-save --no-restore'
 
-alias py3='echo use python instead! && false'
-alias ipy3='echo use ipython instead! && false'
-alias pip3='echo use pip instead! && false'
+alias R='R --no-save --no-restore'
 
 alias pyenv='python3 -m venv'
 

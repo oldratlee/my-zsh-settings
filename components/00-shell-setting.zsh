@@ -33,8 +33,11 @@ which gdircolors &> /dev/null && {
 
 # how to make ctrl+p behave exactly like up arrow in zsh?
 # http://superuser.com/questions/583583
-bindkey '^P' up-line-or-search
-bindkey '^N' down-line-or-search
+#bindkey '^P' up-line-or-search
+#bindkey '^N' down-line-or-search
+
+# https://github.com/zdharma/history-search-multi-word#introduction
+zstyle :plugin:history-search-multi-word reset-prompt-protect 1
 
 # Ubuntu’s command-not-found equivalent for Homebrew on macOS
 # https://github.com/Homebrew/homebrew-command-not-found
@@ -92,7 +95,7 @@ mfdd() {
 
 # Remove duplicate entries in a file without sorting
 # http://www.commandlinefu.com/commands/view/4389
-alias uq="awk '!x[\$0]++'"
+# alias uq="awk '!x[\$0]++'"
 
 # show type -a and which -a info together, very convenient!
 ta() {
@@ -124,6 +127,21 @@ alias nvw='nv -R'
 alias nvd='nv -d'
 
 alias gv=gvim
+# gv() {
+#     local im=$(xkbswitch -g)
+#
+#     if [ $im != 0 ]; then
+#         xkbswitch -s 0
+#     fi
+#
+#     gvim "$@"
+#
+#     if [ $im != 0 ]; then
+#         sleep 0.5
+#         xkbswitch -s $im
+#     fi
+# }
+
 alias gvv='col -b | gv -'
 alias gvw='gv -R'
 alias gvd='gv -d'
@@ -138,8 +156,14 @@ function vc {
 
 ### mac utils ###
 
-alias o=open
-alias o.='open .'
+o() {
+    if (( $# == 0 )); then
+        open .
+    else
+        open "$@"
+    fi
+}
+compdef o=open
 alias o..='open ..'
 
 
@@ -148,18 +172,18 @@ export HOMEBREW_NO_AUTO_UPDATE=1
 alias b=brew
 
 alias bi='brew info'
-alias bci='brew cask info'
+alias bci='brew info --cask'
 alias bls='brew list'
 
 alias bs='brew search'
 alias bh='brew home'
 
 alias bin='brew install'
-alias bcin='brew cask install'
+alias bcin='brew install --cask'
 alias bui='brew uninstall'
-alias bcui='brew cask uninstall'
+alias bcui='brew uninstall --cask'
 alias bri='brew reinstall'
-alias bcri='brew cask reinstall'
+alias bcri='brew reinstall --cask'
 
 ### zsh/oh-my-zsh redefinition ###
 
@@ -179,32 +203,39 @@ alias ax='axel -n8'
 alias axl='axel -n16'
 
 # fpp is an awesome toolkit: https://github.com/facebook/PathPicker
-## reduce exit time of fpp
+## reduce exit time of fpp by resetting shell to bash
 alias fpp='SHELL=/bin/bash fpp'
 alias p=fpp
 
-alias pc='proxychains4 -q'
-pp() {
-    (
-        export https_proxy=socks5://127.0.0.1:7070 http_proxy=socks5://127.0.0.1:7070
-        export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-DproxySet=true -DsocksProxyHost=127.0.0.1 -DsocksProxyPort=7070"
-        "$@"
-    )
+alias f=fzf
+
+### network ###
+
+isTcpPortListening() {
+    # How to check whether a particular port is open on a machine from a shell script and perform action based on that?
+    # https://unix.stackexchange.com/questions/149419
+    local port="$1"
+    lsof -nPi :$port -sTCP:LISTEN -t &> /dev/null
 }
-compdef pp=time
 
 lstcp() {
-    lsof -n -P -iTCP ${1:+"-sTCP:$1"}
-}
+    local is_interactive=false
+    [ "$1" = -i ] && {
+        is_interactive=true
+        shift
+    }
 
-ilstcp() {
-    local st
-    select st in ESTABLISHED SYN_SENT SYN_RCDV LAST_ACK TIME_WAIT FIN_WAIT1 FIN_WAIT_2 CLOSE_WAIT CLOSING CLOSED LISTEN IDLE BOUND; do
-        [ -n "$st" ] && {
-            lstcp "$st"
-            break
-        }
-    done
+    local stcp="$1" s
+    [[ -z "$stcp" && $is_interactive == true ]] && {
+        select s in ESTABLISHED SYN_SENT SYN_RCDV LAST_ACK TIME_WAIT FIN_WAIT1 FIN_WAIT_2 CLOSE_WAIT CLOSING CLOSED LISTEN IDLE BOUND; do
+            [ -n "$s" ] && {
+                stcp="$s"
+                break
+            }
+        done
+    }
+
+    lsof -n -P -iTCP ${stcp:+"-sTCP:$stcp"}
 }
 
 # List tcp listen port info(very useful on mac)
@@ -213,6 +244,39 @@ ilstcp() {
 #   -P inhibits the conversion of port numbers to port names
 #   -n inhibits the conversion of network numbers to host names
 alias tcplisten='lstcp LISTEN'
+
+
+alias pc='proxychains4 -q'
+pp() {
+    local port
+    [ "$1" = "-p" ] && {
+        port=$2
+        shift 2
+    }
+
+    if [ -z "$port" ]; then
+        local -r proxy_ports=(13659 7070)
+
+        for port in $proxy_ports; do
+            isTcpPortListening $port && break
+        done
+    fi
+
+    [ -n "$port" ] || {
+        errorEcho "proxy ports is not opened: $proxy_ports"
+        return 1
+    }
+
+    echoInteractiveInfo "use proxy port $port: $*"
+    (
+        export https_proxy=socks5://127.0.0.1:$port http_proxy=socks5://127.0.0.1:$port
+        export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-DproxySet=true -DsocksProxyHost=127.0.0.1 -DsocksProxyPort=$port"
+        "$@"
+    )
+}
+compdef pp=time
+
+### markdown ###
 
 # adjust indent for space 4
 toc () {
@@ -244,13 +308,18 @@ alias cap='c ap'
 capw() {
     local arg
     for arg; do
-        ap "$(whence -p "$arg")" | c
-    done
+        ap "$(whence -p "$arg")"
+    done | c
 }
 compdef capw=type
 
 compdef coat=cat
 alias awl=a2l
+
+
+catOneScreen() {
+    head -n $((LINES - 6))
+}
 
 alias vzshrc='v ~/.zshrc'
 

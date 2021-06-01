@@ -30,7 +30,8 @@ alias dkei='docker exec -i -t'
 alias dkl='docker logs'
 alias dklf='docker logs -f'
 
-alias dkimg='docker images'
+alias dkim='docker image'
+alias dkims='docker images'
 alias dkp='docker pull'
 alias dksh='docker search'
 
