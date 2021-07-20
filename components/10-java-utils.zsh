@@ -130,12 +130,12 @@ export MAVEN_OPTS="-Xmx768m -Duser.language=en -Duser.country=US"
 
 unalias mvn &> /dev/null
 function mvn() {
-    if [ -n "${M2+dummy}" ]; then
+    if [ -n "${USE_M2+defined}" ]; then
         local M2_BIN="$HOME/.sdkman/candidates/maven/2.2.1/bin/mvn"
         echoInteractiveInfo "use maven 2: $M2_BIN"
-        logAndRun "$M2_BIN" "$@"
+        logAndRun "$M2_BIN" ${MVN_REPO_LOCAL:+"-Dmaven.repo.local=$MVN_REPO_LOCAL"} "$@"
     else
-        findLocalBinOrDefaultToRun mvnw mvn "$@"
+        findLocalBinOrDefaultToRun mvnw mvn ${MVN_REPO_LOCAL:+"-Dmaven.repo.local=$MVN_REPO_LOCAL"} "$@"
     fi
 }
 
