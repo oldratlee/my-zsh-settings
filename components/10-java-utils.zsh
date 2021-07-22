@@ -164,7 +164,7 @@ mdt() {
 }
 mmdt() {
     logAndRun mdt -B "$@" | tee mdt-origin.log |
-        command grep '(\+-|\\-).*:.*:|Building ' --line-buffered -E | tee mdt.log |
+        command grep '(\+-|\\-).*:.*:|Building |(^\[INFO\] -----------+\[)' --line-buffered -E | tee mdt.log |
         command grep --line-buffered -Pv ':test( \(version managed|$)' | tee mdt-exclude-test.log
 }
 
