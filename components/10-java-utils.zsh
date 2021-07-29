@@ -11,6 +11,11 @@ __getLatestJavaHomeForVersion() {
     } 2> /dev/null
 }
 
+# set JAVA_HOME
+setjvhm(){
+    export JAVA_HOME="$1"
+}
+
 export_java_env_vars() {
     #export JAVA_HOME=$(/usr/libexec/java_home -v 1.6)
     #export JAVA6_HOME='/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home'
@@ -55,13 +60,7 @@ export_java_env_vars() {
     export JAVA_OPTS="-Duser.language=en -Duser.country=US -Xverify:none"
     export MANPATH="$JAVA_HOME/man:$MANPATH"
 }
-
 export_java_env_vars
-
-# set JAVA_HOME
-setjvhm(){
-    export JAVA_HOME="$1"
-}
 
 alias jvp='javap -J-Duser.language=en -J-Duser.country=US -cp .'
 alias jvpp='javap -J-Duser.language=en -J-Duser.country=US -cp . -p'

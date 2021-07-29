@@ -86,6 +86,10 @@ export GREP_COLOR='1;7;33'
 
 export LESS="${LESS}iXF"
 
+# https://github.com/facebook/zstd/issues/1526
+alias tzst='tar --use-compress-program zstd -cvf'
+
+
 mfdd() {
     local f
     mdfind "$@" | while IFS= read -r f; do
@@ -150,7 +154,18 @@ alias note='(cd ~/notes; gv)'
 
 function vc {
     (( $# == 0 )) && local -a files=( . ) || local -a files=( "$@" )
-    open -a "$HOME/Applications/Visual Studio Code.app" "${files[@]}"
+
+    local vc_app_dirs=(
+        '/Applications/Visual Studio Code.app'
+        "$HOME/Applications/Visual Studio Code.app"
+    )
+
+    local vc_app
+    for vc_app in "${vc_app_dirs[@]}"; do
+        [ -d "$vc_app" ] && break
+    done
+
+    open -a "$vc_app" "${files[@]}"
     echo "Visual Studio Code open ${files[@]}"
 }
 
