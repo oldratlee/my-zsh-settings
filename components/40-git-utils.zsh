@@ -207,40 +207,7 @@ alias lg='lazygit'
 
 # misc
 
-# git browse
-gbw() {
-    local url
-    if ((# > 1)); then
-        errorEcho "at most 1 arguemt, too many arguements: $*"
-        return 1
-    elif ((# == 1)); then
-        if [ -d "$1" ]; then
-            [ ! -d "$1/.git" ] && {
-                errorEcho "dir $1 is not git repo!"
-                return 1
-            }
-            url=$(cd "$1" && git remote get-url origin)
-        else
-            url=$1
-        fi
-    else # $# == 0
-        url=$(git remote get-url origin)
-    fi
-    [ -n "$url" ] || return 1
-
-    if ! [[ "$url" =~ '^http' ]]; then
-        url=$(echo "$url" | sed -r '
-            s%:%/%
-            s%^git@%https://%
-            s/(\.wiki)?\.git$//
-        ')
-    fi
-
-    echo "open $url"
-    open "$url"
-}
-
-__heaveyOpenFileByApp() {
+__heavyOpenFileByApp() {
     [ $# -eq 0 ] && {
         echo "at least 1 app args" 1>&2
         exit 1
@@ -279,35 +246,51 @@ st() {
 
 ## URL shower/switcher
 
-# show swithed git repo addr(git <=> http)
+__gitUrl_Http2Git() {
+    local git_user="${1:-git}"
+    echo "$url" | sed -r '
+        s#^https?://#'"$git_user"'@#
+        s#(\.com|\.org)/#\1:#
+        s#(\.git)?$#\.git#
+    '
+}
+
+__gitUrl_Git2Http() {
+    echo "$url" | sed -r '
+        s#^\w*@#https://#
+        s#(\.com|\.org):#\1/#
+        s#(\.wiki)?\.git$##
+    '
+}
+
+# show switched git repo address(git protocol <=> http protocol)
 shg() {
+    local git_user
+    [ "$1" = "-u" ] && {
+        git_user="${2:-git}"
+        shift 2
+    }
+
     local -r url="${1:-$(git remote get-url origin)}"
     if [ -z "$url" ]; then
-        echo "No arguement and Not a git repository!"
+        echo "No arguments and Not a git repository directory!"
         return 1
     fi
 
     if [[ "$url" =~ '^http' ]]; then
-        local -r swithed_url=$(echo "$url" | sed -r 's#^https?://#git@#
-            s#(\.com|\.org)/#\1:#
-            s#(\.git)?$#\.git#'
-        )
+        local -r switched_url=$(__gitUrl_Http2Git ${git_user})
     else
-        local -r swithed_url=$(echo "$url" | sed -r '
-            s#^git@#http://#
-            s#http://github.com#https://github.com#
-            s#(\.com|\.org):#\1/#
-            s#(\.wiki)?\.git$##'
-        )
+        local -r switched_url=$(__gitUrl_Git2Http)
     fi
 
     if [ -t 1 ]; then
-        echo "$url\n->\n$(echo "$swithed_url" | c)"
+        echo "$url\n->\n$(echo "$switched_url" | c)"
     else
-        echo "$swithed_url"
+        echo "$switched_url"
     fi
 }
-# show git repo addr http addr recursively
+
+# show git repo address recursively
 shgr() {
     local d
     for d in `find -maxdepth 6 -iname .git`; do
@@ -318,7 +301,8 @@ shgr() {
         )
     done
 }
-# change git repo addr http addr recursively
+
+# change git repo address of http protocol to git protocol recursively
 chgr() {
     local d
     for d in `find -maxdepth 6 -iname .git`; do
@@ -326,15 +310,61 @@ chgr() {
             cd "$(dirname $d)"
             # echo "Found $PWD"
             local url=$(git remote get-url origin)
-            [[ "$url" =~ '^http'  ]] && {
-                local gitUrl=$(shg)
+            if [[ "$url" =~ '^http'  ]]; then
+                local gitUrl=$(__gitUrl_Http2Git)
                 echo -e "CHANGE $PWD :\n\t$url\n\tto\n\t$gitUrl"
                 git remote set-url origin $gitUrl
-            } || {
+            else
                 echo -e "Ignore $PWD :\n\t$url"
-            }
+            fi
         )
     done
+}
+
+gitBatchClone() {
+    local git_user
+    [ "$1" = "-u" ] && {
+        git_user="${2:-git}"
+        shift 2
+    }
+
+    local url
+    for url in "$@"; do
+        if [[ "$url" =~ '^http' ]]; then
+            url=$(__gitUrl_Http2Git "$git_user")
+        fi
+
+        logAndRun git clone "$url"
+    done
+}
+
+# git browse
+gbw() {
+    local url
+    if ((# > 1)); then
+        errorEcho "at most 1 argument, too many arguments: $*"
+        return 1
+    elif ((# == 1)); then
+        if [ -d "$1" ]; then
+            [ ! -d "$1/.git" ] && {
+                errorEcho "dir $1 is not git repo!"
+                return 1
+            }
+            url=$(cd "$1" && git remote get-url origin)
+        else
+            url=$1
+        fi
+    else # $# == 0
+        url=$(git remote get-url origin)
+    fi
+    [ -n "$url" ] || return 1
+
+    if ! [[ "$url" =~ '^http' ]]; then
+        url=$(__gitUrl_Http2Git)
+    fi
+
+    echo "open $url"
+    open "$url"
 }
 
 # git up
