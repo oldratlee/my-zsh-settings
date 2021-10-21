@@ -41,7 +41,8 @@ logAndRun() {
     fi
 }
 
-debugAndRun() {
+# run debug
+rund() {
     set -x
     "$@"
     set +x
@@ -56,15 +57,21 @@ findLocalBinOrDefaultToRun() {
     local d="$PWD" target
     while true; do
         [ "/" = "$d" ] && {
-            target="$(whence -p $default_bin)"
-            echoInteractiveInfo "use default bin $default_bin: $target"
-            break
+            if target="$(whence -p $default_bin)"; then
+                echoInteractiveInfo "use default bin $default_bin: $target"
+                break
+            else
+                errorEcho "No default bin($default_bin) found!"
+                return 1
+            fi
         }
+
         [ -f "$d/$local_bin" ] && {
             target="$(realpath "$d" --relative-to="$PWD")/$local_bin"
             echoInteractiveInfo "use local bin $local_bin: $target"
             break
         }
+
         d=`dirname "$d"`
     done
 
