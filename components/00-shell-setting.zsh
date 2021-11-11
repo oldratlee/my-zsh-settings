@@ -11,10 +11,25 @@ export WINEDEBUG=-all
 HISTSIZE=50000
 SAVEHIST=50000
 
+setopt hist_ignore_space      # ignore commands that start with space
+# https://superuser.com/questions/519596/share-history-in-multiple-zsh-shell
+#To save every command before it is executed (this is different from bash's history -a solution):
+setopt inc_append_history
+#To retrieve the history file everytime history is called upon.
+setopt share_history
+
 # append brew man
 #export MANPATH="$(cat $ZSH_CACHE_DIR/man_path_cache):$MANPATH"
 
-export PATH="$HOME/bin:$HOME/bin/useful-scripts/bin:$PATH"
+
+# linux - How can I read documentation about built in zsh commands? - Stack Overflow
+# https://stackoverflow.com/questions/4405382
+# Is there a zsh equivalent to the bash `help` builtin? - Super User
+# https://superuser.com/questions/1563825
+alias help=run-help
+alias h=run-help
+
+export PATH="$HOME/.local/bin:$HOME/bin:$HOME/bin/useful-scripts/bin:$PATH"
 # Calibre utils, brew texinfo
 #export PATH="/usr/local/opt/texinfo/bin:$PATH:/Applications/calibre.app/Contents/MacOS"
 
@@ -62,7 +77,11 @@ done
 ### core utils ###
 
 alias pt=pstree
+ptc() {
+    pt "$@" | coat -n
+}
 alias du='du -h'
+alias ncdu='ncdu --color=dark --confirm-quit'
 #alias df='df -h'
 alias df='/bin/df -h | sort -k3,3h'
 
@@ -80,9 +99,11 @@ compdef btee=tee
 
 alias D=colordiff
 alias diff=colordiff
+alias bcp=bcompare
 
-alias grep='grep --color=auto --exclude-dir={.git,.hg,.svn,.cvs,bzr,CVS,target,.mvn,.settings,build,_site,.idea,Pods,taobao-tomcat} --exclude=\*.{ipr,iml,iws,jar,war,zip,tmp}'
+alias grep='grep --color=auto --exclude-dir={.git,.hg,.svn,.cvs,bzr,CVS,target,.mvn,.gradle,.settings,build,_site,.idea,Pods,taobao-tomcat} --exclude=\*.{ipr,iml,iws,jar,war,zip,tmp}'
 export GREP_COLOR='1;7;33'
+alias rg='rg --colors=match:bg:yellow --colors=match:fg:0,0,0'
 
 export LESS="${LESS}iXF"
 
@@ -130,21 +151,27 @@ alias nvv='col -b | nv -'
 alias nvw='nv -R'
 alias nvd='nv -d'
 
-alias gv=gvim
-# gv() {
-#     local im=$(xkbswitch -g)
-#
-#     if [ $im != 0 ]; then
-#         xkbswitch -s 0
-#     fi
-#
-#     gvim "$@"
-#
-#     if [ $im != 0 ]; then
-#         sleep 0.5
-#         xkbswitch -s $im
-#     fi
-# }
+alias lv=lvim
+alias lvv='col -b | lv -'
+alias lvw='lv -R'
+alias lvd='lv -d'
+
+#alias gv=gvim
+gv() {
+    local im=$(xkbswitch -g)
+
+    if [ $im != 0 ]; then
+        xkbswitch -s 0
+        sleep 0.1
+    fi
+
+    gvim "$@"
+
+    if [ $im != 0 ]; then
+        sleep 0.1
+        xkbswitch -s $im
+    fi
+}
 
 alias gvv='col -b | gv -'
 alias gvw='gv -R'
@@ -159,14 +186,16 @@ function vc {
         '/Applications/Visual Studio Code.app'
         "$HOME/Applications/Visual Studio Code.app"
     )
-
     local vc_app
     for vc_app in "${vc_app_dirs[@]}"; do
         [ -d "$vc_app" ] && break
     done
 
-    open -a "$vc_app" "${files[@]}"
-    echo "Visual Studio Code open ${files[@]}"
+    local file
+    for file in "${files[@]}"; do
+        open -a "$vc_app" "$file"
+        echo "Visual Studio Code open ${files[@]}"
+    done
 }
 
 ### mac utils ###
@@ -183,6 +212,8 @@ alias o..='open ..'
 
 
 export HOMEBREW_NO_AUTO_UPDATE=1
+# https://docs.brew.sh/FAQ#how-can-i-keep-old-versions-of-a-formula-when-upgrading
+export HOMEBREW_NO_INSTALL_CLEANUP=1
 
 alias b=brew
 
@@ -263,6 +294,12 @@ alias tcplisten='lstcp LISTEN'
 
 alias pc='proxychains4 -q'
 pp() {
+    if [ -n "${SKIP_PP+defined}" ]; then
+        echoInteractiveInfo "run without proxy: $*"
+        "$@"
+        return
+    fi
+
     local port
     [ "$1" = "-p" ] && {
         port=$2
@@ -284,7 +321,9 @@ pp() {
 
     echoInteractiveInfo "use proxy port $port: $*"
     (
-        export https_proxy=socks5://127.0.0.1:$port http_proxy=socks5://127.0.0.1:$port
+        export https_proxy=http://127.0.0.1:$port
+        export http_proxy=http://127.0.0.1:$port
+        export ftp_proxy="$https_proxy"
         export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-DproxySet=true -DsocksProxyHost=127.0.0.1 -DsocksProxyPort=$port"
         "$@"
     )
@@ -318,7 +357,7 @@ alias otv=octave-cli
 ### my utils ###
 
 alias cap='c ap'
-#
+
 # print and copy full path of command bin
 capw() {
     local arg
@@ -328,9 +367,9 @@ capw() {
 }
 compdef capw=type
 
+alias cq='c -q'
 compdef coat=cat
 alias awl=a2l
-
 
 catOneScreen() {
     head -n $((LINES - 6))

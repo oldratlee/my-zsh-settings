@@ -16,6 +16,8 @@ setjvhm(){
     export JAVA_HOME="$1"
 }
 
+alias cdjh='cd $JAVA_HOME'
+
 export_java_env_vars() {
     #export JAVA_HOME=$(/usr/libexec/java_home -v 1.6)
     #export JAVA6_HOME='/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home'
@@ -86,39 +88,65 @@ export JREBEL_HOME=$HOME/Applications/jrebel7.0.2
 
 export PATH="$HOME/.sdkman/candidates/gatling/3.3.1/bin:$PATH"
 
+# decompile java
+dcj() {
+    local dcj_quit dcj_class_path
+    while (($# > 0)); do
+        case "$1" in
+        -q)
+            dcj_quit=-q
+            shift
+            ;;
+        -cp)
+            dcj_class_path="${dcj_class_path:+$dcj_class_path:}$2"
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+        esac
+    done
+
+    logAndRun cfr-decompiler --removedeadmethods false \
+        ${dcj_class_path:+--extraclasspath} \
+        ${dcj_class_path:+"$dcj_class_path"} \
+        "$@" | c ${dcj_quit:-}
+}
+
+alias dcjq='dcj -q'
+
 ###############################################################################
 # Scala
 ###############################################################################
 
 alias scl='scala -Dscala.color -feature'
 
-# decompile scala class
-dsc() {
-    local dsc_quit scala_version scala_candidates=~/.sdkman/candidates/scala
+# decompile scala
+dcs() {
+    local scala_version args=()
     while (($# > 0)); do
-        [ "$1" = "-q" ] && {
-            dsc_quit=-q
-            shift
-            continue
-        }
-        [ "$1" = "-sv" ] && {
-            scala_version="$1"
+        case "$1" in
+        -sv)
+            scala_version="$2"
             shift 2
-            continue
-        }
-        break
+            ;;
+        *)
+            args+=$1
+            shift
+            ;;
+        esac
     done
+    set -- $args
 
+    local -r scala_candidates="$HOME/.sdkman/candidates/scala"
     [ -z "${scala_version:-}" ] && {
         scala_version=$(builtin cd "$scala_candidates" && command ls -v -d *(/) | tail -1)
     }
 
-    cfr-decompiler --removedeadmethods false \
-        --extraclasspath "$scala_candidates/$scala_version/lib" \
-        "$@" | expand | c ${dsc_quit:-}
+    dcj -cp "$scala_candidates/$scala_version/lib" "$@"
 }
 
-alias dscq='dsc -q'
+alias dcsq='dcs -q'
 
 ###############################################################################
 # Maven
@@ -128,11 +156,19 @@ alias dscq='dsc -q'
 export MAVEN_OPTS="-Xmx768m -Duser.language=en -Duser.country=US"
 
 unalias mvn &> /dev/null
+
+# installed mvnd
+# https://github.com/mvndaemon/mvnd/#set-up-completion
+unalias mvnd
+
 function mvn() {
     if [ -n "${USE_M2+defined}" ]; then
         local M2_BIN="$HOME/.sdkman/candidates/maven/2.2.1/bin/mvn"
         echoInteractiveInfo "use maven 2: $M2_BIN"
         logAndRun "$M2_BIN" ${MVN_REPO_LOCAL:+"-Dmaven.repo.local=$MVN_REPO_LOCAL"} "$@"
+    elif [ -n "${USE_MVND+defined}" ]; then
+        echoInteractiveInfo "use mvnd: $(which mvnd)"
+        logAndRun mvnd ${MVN_REPO_LOCAL:+"-Dmaven.repo.local=$MVN_REPO_LOCAL"} "$@"
     else
         findLocalBinOrDefaultToRun mvnw mvn ${MVN_REPO_LOCAL:+"-Dmaven.repo.local=$MVN_REPO_LOCAL"} "$@"
     fi
@@ -159,14 +195,16 @@ alias mcio='mc && mio'
 alias mcdeploy='mc && mvnq deploy'
 
 mdt() {
-    mvn dependency:tree
+    mvn dependency:tree "$@"
 }
+
+alias mdtr='mdt -Dscope=runtime'
+
 mmdt() {
     logAndRun mdt -B "$@" | tee mdt-origin.log |
         command grep '(\+-|\\-).*:.*:|Building |(^\[INFO\] -----------+\[)' --line-buffered -E | tee mdt.log |
         command grep --line-buffered -Pv ':test( \(version managed|$)' | tee mdt-exclude-test.log
 }
-
 
 mda() {
     mvn dependency:analyze -B "$@" | tee mda-origin.log |
@@ -185,7 +223,7 @@ alias mdc='mvn dependency:copy-dependencies -DincludeScope=runtime'
 alias mdct='mvn dependency:copy-dependencies -DincludeScope=test'
 
 # Check dependencies update
-alias mcv='mvn versions:display-dependency-updates versions:display-plugin-updates versions:display-property-updates -DperformRelease -U'
+alias mcv='mvn versions:display-dependency-updates versions:display-plugin-updates versions:display-property-updates -DperformRelease'
 mmcv() {
     mcv -B "$@" | tee mcv-origin.log |
         command grep -- '\[INFO\].*->' | sort -k4,4V -k2,2 -u | tee mcv.log
@@ -230,6 +268,14 @@ mmd() {
     md src/test/resources
 }
 
+# maven artifact version
+mav() {
+    local coordinate="$1"
+    coordinate="${coordinate//://}"
+    http --follow "https://img.shields.io/maven-central/v/$coordinate.svg"  |
+        rg '(?<="maven-central: v)[^"]+(?=")' -Po
+}
+
 
 ###############################################################################
 # sbt
@@ -249,7 +295,6 @@ function gradle() {
 }
 
 #export GRADLE_OPTS="-Xmx1024m -Xms256m -XX:MaxPermSize=512m"
-alias grd='gradle'
 alias grw=gradle
 
 alias grwq='grw -q'

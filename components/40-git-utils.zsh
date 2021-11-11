@@ -97,6 +97,23 @@ compdef _git ggonepage=git-log
 
 ## git branch
 
+unalias gco
+gco() {
+    local remote=origin
+    [ "$1" = "-r" ] && {
+        remote="$2"
+        shift 2
+    }
+    local branch=${1##remotes/$remote/}
+
+    git checkout "$branch" || {
+        git fetch "$remote" &&
+        git checkout "$branch"
+    }
+}
+compdef _git gco=git-checkout
+
+
 alias __git_remove_bkp_rel_branches='sed -r "/->/b; /\/tags\//d; /\/releases\//d"'
 alias __git_output_local_branch='sed -r "/->/b; s#remotes/([^/]+)/(.*)#remotes/\1/\2 => \2#"'
 
@@ -244,6 +261,25 @@ st() {
     done
 }
 
+# GitHub Desktop.app
+ghd() {
+    (( $# == 0 )) && local -a files=( . ) || local -a files=( "$@" )
+    local f isFirst=true
+    for f in "${files[@]}"; do
+        $isFirst && isFirst=false || echo
+        (
+            cd "${f}"
+            local git_root
+            git_root="$(git rev-parse --show-toplevel)" || {
+                echo "Error: $PWD($f) is NOT a git repo!"
+                return 2
+            }
+            open -a '/Applications/GitHub Desktop.app' "$git_root"
+            echo "GitHub Desktop open $git_root ( $f )"
+        )
+    done
+}
+
 ## URL shower/switcher
 
 __gitUrl_Http2Git() {
@@ -251,6 +287,7 @@ __gitUrl_Http2Git() {
     echo "$url" | sed -r '
         s#^https?://#'"$git_user"'@#
         s#(\.com|\.org)/#\1:#
+        s#/$##
         s#(\.git)?$#\.git#
     '
 }
@@ -321,6 +358,33 @@ chgr() {
     done
 }
 
+wgcl() {
+    local git_user
+    local -a git_options=()
+
+    # parse options
+    while true; do
+        case "$1" in
+        -u)
+            git_user="${2:-git}"
+            shift 2
+            ;;
+        -r)
+            git_options+=--recurse-submodules
+            shift
+            ;;
+        *)
+            break
+            ;;
+        esac
+    done
+
+    local url
+    for url in "$@"; do
+        whl git clone $git_options "$url"
+    done
+}
+
 gitBatchClone() {
     local git_user
     [ "$1" = "-u" ] && {
@@ -338,33 +402,35 @@ gitBatchClone() {
     done
 }
 
+alias gitlabBatchClone='gitBatchClone -u gitlab'
+
 # git browse
 gbw() {
-    local url
-    if ((# > 1)); then
-        errorEcho "at most 1 argument, too many arguments: $*"
-        return 1
-    elif ((# == 1)); then
-        if [ -d "$1" ]; then
-            [ ! -d "$1/.git" ] && {
-                errorEcho "dir $1 is not git repo!"
-                return 1
-            }
-            url=$(cd "$1" && git remote get-url origin)
+    local args=("$@") arg url
+    args=${args:-.}
+
+    for arg in "${args[@]}"; do
+        if [ -d "$arg" ]; then
+            (
+                cd "$arg"
+                url=$(cd "$1" && git remote get-url origin)
+                if ! [[ "$url" =~ '^http' ]]; then
+                    url=$(__gitUrl_Git2Http)
+                fi
+
+                echo "open $url @ dir $arg"
+                open "$url"
+            )
         else
-            url=$1
+            url="$arg"
+            if ! [[ "$url" =~ '^http' ]]; then
+                url=$(__gitUrl_Git2Http)
+            fi
+
+            echo "open $url @ dir $arg"
+            open "$url"
         fi
-    else # $# == 0
-        url=$(git remote get-url origin)
-    fi
-    [ -n "$url" ] || return 1
-
-    if ! [[ "$url" =~ '^http' ]]; then
-        url=$(__gitUrl_Http2Git)
-    fi
-
-    echo "open $url"
-    open "$url"
+    done
 }
 
 # git up
@@ -380,7 +446,7 @@ alias gu='git-up && git fetch --tags'
 # git up recursively
 # Usage: gur [<dir1>  [<dir2> ...]]
 gur() {
-    local maxdepth="6"
+    local maxdepth=6
     if [ "$1" = "-d" ]; then
         local maxdepth="$2"
         shift 2
