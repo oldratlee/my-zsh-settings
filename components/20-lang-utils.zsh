@@ -118,11 +118,11 @@ dme() {
 
 ZSH_PIP_INDEXES='http://pypi.douban.com/simple/'
 
-alias py=python
+alias py=python3
 alias py3=python3
 
 unalias ipython
-alias ipy=ipython --matplotlib
+alias ipy=ipython --matplotlib --pylab
 alias bpy=bpython
 
 alias nb='LANGUAGE="" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-notebook'
@@ -184,14 +184,59 @@ relink_virtualenv() {
 # Javascript
 ###############################################################################
 
+
+
+
 # NVM: https://github.com/creationix/nvm
 #
 # NVM init is slowwwwww! about 1.2s on my machine!!
 # manually activate when needed.
 #export PATH="$HOME/.nvm/versions/node/v8.1.2/bin:$PATH"
-#anvm() {
-#    export NVM_DIR="$HOME/.nvm"
-#    source "/usr/local/opt/nvm/nvm.sh"
-#    source <(npm completion)
-#}
+anvm() {
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+    source <(npm completion)
+}
+
+__node_switch_clear() {
+    [ -z "$__node_switch_before_version" ] && return 0
+
+    local arr_excluding=("/usr/local/opt/node@${__node_switch_before_version}/bin" "$@")
+    # https://stackoverflow.com/a/52188874/922688
+    path=(${path:|arr_excluding})
+    export PATH
+
+    unset __node_switch_before_version
+}
+
+__node_switch() {
+    local node_version="$1"
+    local node_home_bin="/usr/local/opt/node@${node_version}/bin"
+    [ ! -d "$node_home_bin" ] && {
+        errorEcho "switch target $node_version is NOT existed: $node_home_bin"
+        return 1
+    }
+
+    __node_switch_clear "$node_home_bin"
+
+    export PATH="$node_home_bin:$PATH"
+
+    __node_switch_before_version="$node_version"
+}
+
+alias n16='__node_switch 16'
+alias n0='__node_switch_clear'
+
+unalias npmg
+alias nr='npm run'
+alias ni='npm install'
+
+alias ng='npm -g'
+alias nig='npm install -g'
+
+
+# tabtab source for packages
+# uninstall by removing these lines
+[[ -f ~/.config/tabtab/zsh/__tabtab.zsh ]] && . ~/.config/tabtab/zsh/__tabtab.zsh || true

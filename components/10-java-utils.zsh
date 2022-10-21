@@ -5,9 +5,10 @@
 __getLatestJavaHomeForVersion() {
     local version="$1"
     {
-    command ls -d $HOME/.sdkman/candidates/java/"$version".* |
-        grep -vF '.fx-' |
-        tail -1
+        printf '%s\n' "$SDKMAN_CANDIDATES_DIR/java/$version"[.-]* |
+            grep -vP '\.fx-|-(gln|grl|mandrel|nik)$' |
+            sort -V |
+            tail -1
     } 2> /dev/null
 }
 
@@ -21,40 +22,32 @@ alias cdjh='cd $JAVA_HOME'
 export_java_env_vars() {
     #export JAVA_HOME=$(/usr/libexec/java_home -v 1.6)
     #export JAVA6_HOME='/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home'
-    export JAVA6_HOME="$HOME/.sdkman/candidates/java/1.6"
-    export JAVA6HOME="$JAVA6_HOME"
-
-    export JDK6_HOME="$JAVA6_HOME"
-    export JDK_6="$JAVA6_HOME"
-    export JDK_16="$JAVA6_HOME"
-    alias j6='setjvhm $JAVA6_HOME'
-
     local jv_version jv_home
-    for jv_version in {7..42}; do
+    for jv_version in {6..42}; do
         jv_home=$(__getLatestJavaHomeForVersion $jv_version)
         [ -n "$jv_home" ] || continue
 
+        # export JAVAn_HOME, JAVAnHOME, like JAVA8_HOME, JAVA8HOME
         eval export JAVA"$jv_version"_HOME="'$jv_home'"
         eval export JAVA"$jv_version"HOME="'$jv_home'"
 
+        # export JDKn_HOME, JDK_n, like JDK8_HOME, JDK_8
         eval export JDK"$jv_version"_HOME="'$jv_home'"
         eval export JDK_"$jv_version"="'$jv_home'"
 
-        # add JAVA_HOME switcher, j9, j16
+        # add JAVA_HOME switcher jn, like j9, j16
         eval "alias j${jv_version}='setjvhm \$JAVA${jv_version}_HOME'"
 
-        if ((jv_version < 10)); then
-            eval export JDK_$((jv_version + 10))="'$jv_home'"
-        else
-            # JAVA_HOME switcher
+        if ((jv_version >= 10)); then
             local jv_version_x=$((jv_version - 10))
             (( jv_version_x == 0 )) && jv_version_x=
+            # add JAVA_HOME switcher jxn, like jx(for java 10), jx1(for java 11), jx7(for java 17)
             eval "alias jx${jv_version_x}='setjvhm \$JAVA${jv_version}_HOME'"
         fi
     done
 
     # default JAVA_HOME
-    export JAVA0_HOME="$HOME/.sdkman/candidates/java/current"
+    export JAVA0_HOME="$SDKMAN_CANDIDATES_DIR/java/current"
     alias j0='setjvhm $JAVA0_HOME'
 
     export JAVA_HOME="$JAVA0_HOME"
@@ -64,10 +57,21 @@ export_java_env_vars() {
 }
 export_java_env_vars
 
+showJavaInfos() {
+    echo
+    echo "\$JAVA_HOME: $JAVA_HOME"
+    echo
+    logAndRun type -a java
+    logAndRun which -a java
+    echo
+    logAndRun java -version
+    echo
+    logAndRun mvn -v
+}
+
 alias jvp='javap -J-Duser.language=en -J-Duser.country=US -cp .'
 alias jvpp='javap -J-Duser.language=en -J-Duser.country=US -cp . -p'
 alias jcc='$HOME/Codes/open/japi-compliance-checker/japi-compliance-checker.pl -skip-internal-packages internal -skip-internal-packages util -skip-internal-packages utils'
-alias jad='jad -space -nonlb -t 2 -ff'
 #alias jad='jad -nonlb -space -ff -s java'
 
 swJavaNetProxy() {
@@ -86,7 +90,7 @@ swJavaNetProxy() {
 
 export JREBEL_HOME=$HOME/Applications/jrebel7.0.2
 
-export PATH="$HOME/.sdkman/candidates/gatling/3.3.1/bin:$PATH"
+export PATH="$SDKMAN_CANDIDATES_DIR/gatling/3.3.1/bin:$PATH"
 
 # decompile java
 dcj() {
@@ -120,6 +124,7 @@ alias dcjq='dcj -q'
 ###############################################################################
 
 alias scl='scala -Dscala.color -feature'
+alias amd='$SDKMAN_CANDIDATES_DIR/ammonite/2.4.0_3.0/amm'
 
 # decompile scala
 dcs() {
@@ -138,7 +143,7 @@ dcs() {
     done
     set -- $args
 
-    local -r scala_candidates="$HOME/.sdkman/candidates/scala"
+    local -r scala_candidates="$SDKMAN_CANDIDATES_DIR/scala"
     [ -z "${scala_version:-}" ] && {
         scala_version=$(builtin cd "$scala_candidates" && command ls -v -d *(/) | tail -1)
     }
@@ -162,37 +167,51 @@ unalias mvn &> /dev/null
 unalias mvnd
 
 function mvn() {
-    if [ -n "${USE_M2+defined}" ]; then
-        local M2_BIN="$HOME/.sdkman/candidates/maven/2.2.1/bin/mvn"
+    local args=(${MVN_REPO_LOCAL:+"-Dmaven.repo.local=$MVN_REPO_LOCAL"} "$@")
+
+    if [ "${USE_M2+defined}" ]; then
+        local M2_BIN="$SDKMAN_CANDIDATES_DIR/maven/2.2.1/bin/mvn"
         echoInteractiveInfo "use maven 2: $M2_BIN"
+
         logAndRun "$M2_BIN" ${MVN_REPO_LOCAL:+"-Dmaven.repo.local=$MVN_REPO_LOCAL"} "$@"
     elif [ -n "${USE_MVND+defined}" ]; then
         echoInteractiveInfo "use mvnd: $(which mvnd)"
-        logAndRun mvnd ${MVN_REPO_LOCAL:+"-Dmaven.repo.local=$MVN_REPO_LOCAL"} "$@"
+
+        logAndRun mvnd "${args[@]}"
     else
-        findLocalBinOrDefaultToRun mvnw mvn ${MVN_REPO_LOCAL:+"-Dmaven.repo.local=$MVN_REPO_LOCAL"} "$@"
+        findLocalBinOrDefaultToRun mvnw mvn "${args[@]}"
     fi
 }
 
 # quick and dirty mode(qdm)
 #
-#   apache-rat-plugin : rat.skip
+# apache-rat-plugin : rat.skip
 #   https://creadur.apache.org/rat/apache-rat-plugin/check-mojo.html
+#
+# What is the difference between "-Dmaven.test.skip.exec" vs "-Dmaven.test.skip=true" and "-DskipTests"?
+#   https://stackoverflow.com/questions/21933895
+# Maven - How to compile tests without running them ?
+#   https://stackoverflow.com/questions/4768660
 __mvn_qdm_options=(
-    -Dmaven.test.skip
+    -DskipTests
     -Drat.skip
     -Dautoconf.skip -Dautoconfig.skip
-    -Denv=release
     -Dscm.app.name=faked -DappName=faked
 )
 
-alias mvnq='mvn $__mvn_qdm_options'
-alias mc='mvnq clean'
-alias mi='mvnq install'
-alias mio='mi -o'
-alias mci='mc && mi'
-alias mcio='mc && mio'
-alias mcdeploy='mc && mvnq deploy'
+
+mvnq() {
+    mvn $__mvn_qdm_options "$@"
+}
+mc() {
+    mvnq clean "$@"
+}
+mi() {
+    mvnq install "$@"
+}
+mci() {
+    mc && mi "$@"
+}
 
 mdt() {
     mvn dependency:tree "$@"
@@ -200,11 +219,13 @@ mdt() {
 
 alias mdtr='mdt -Dscope=runtime'
 
-mmdt() {
+mmdt() {(
+    unset USE_MVND
+
     logAndRun mdt -B "$@" | tee mdt-origin.log |
         command grep '(\+-|\\-).*:.*:|Building |(^\[INFO\] -----------+\[)' --line-buffered -E | tee mdt.log |
         command grep --line-buffered -Pv ':test( \(version managed|$)' | tee mdt-exclude-test.log
-}
+)}
 
 mda() {
     mvn dependency:analyze -B "$@" | tee mda-origin.log |
@@ -226,7 +247,7 @@ alias mdct='mvn dependency:copy-dependencies -DincludeScope=test'
 alias mcv='mvn versions:display-dependency-updates versions:display-plugin-updates versions:display-property-updates -DperformRelease'
 mmcv() {
     mcv -B "$@" | tee mcv-origin.log |
-        command grep -- '\[INFO\].*->' | sort -k4,4V -k2,2 -u | tee mcv.log
+        command rg '\[(INFO|ERROR)\].*->' | sort -k4,4V -k2,2 -u | tee mcv.log
 }
 alias mdg='mvn com.github.ferstl:depgraph-maven-plugin:3.3.0:aggregate -DgraphFormat=puml'
 
@@ -234,9 +255,9 @@ alias mdg='mvn com.github.ferstl:depgraph-maven-plugin:3.3.0:aggregate -DgraphFo
 muv() {
     [ $# -ne 1 ] && {
         echo "Only 1 argument for version!"
-        exit 1
+        return 1
     }
-    mvn org.codehaus.mojo:versions-maven-plugin:2.8.1:set -DgenerateBackupPoms=false -DnewVersion="$1"
+    mvn org.codehaus.mojo:versions-maven-plugin:2.10.0:set -DgenerateBackupPoms=false -DnewVersion="$1"
 }
 # create maven wrapper
 # http://mvnrepository.com/artifact/io.takari/maven
@@ -262,10 +283,19 @@ mmcd() {
 }
 
 mmd() {
-    md src/main/java
-    md src/main/resources
-    md src/test/java
-    md src/test/resources
+    (( $# == 0 )) && local -a dirs=( . ) || local -a dirs=( "$@" )
+    local d
+
+    for d in "${dirs[@]}"; do
+    (
+        md "$d"
+        cd "$d"
+        md src/main/java
+        md src/main/resources
+        md src/test/java
+        md src/test/resources
+    )
+    done
 }
 
 # maven artifact version
@@ -276,6 +306,21 @@ mav() {
         rg '(?<="maven-central: v)[^"]+(?=")' -Po
 }
 
+# swith maven
+smOpen() {
+    (
+        cd ~/.m2
+        cp settings.xml.open settings.xml
+    )
+}
+
+# swith maven
+smMinOpen() {
+    (
+        cd ~/.m2
+        cp settings.xml.open.min settings.xml
+    )
+}
 
 ###############################################################################
 # sbt

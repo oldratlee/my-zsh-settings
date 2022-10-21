@@ -91,6 +91,7 @@ __swCMakeBuildTool() {
 # vcpkg
 ###############################################################################
 
+export VCPKG_ROOT=/usr/local/opt/vcpkg
 alias vp='vcpkg'
 alias vps='vcpkg search'
 alias vpi='vcpkg install'

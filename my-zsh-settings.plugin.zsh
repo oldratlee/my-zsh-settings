@@ -80,6 +80,7 @@ findLocalBinOrDefaultToRun() {
 
 whl() {
     local loopEvenSuccess=false sleepTime=1
+    local ignore_exit_codes=()
     while true; do
         case "$1" in
         -f)
@@ -88,6 +89,10 @@ whl() {
             ;;
         -t)
             sleepTime="$2"
+            shift 2
+            ;;
+        -i)
+            ignore_exit_codes+="$2"
             shift 2
             ;;
         *)
@@ -104,6 +109,7 @@ whl() {
             echoInteractiveInfo "Force loop $counter: $*"
         fi
         "$@"
+
         lastExitCode=$?
 
         if ((lastExitCode == 0)) && ! $loopEvenSuccess ; then

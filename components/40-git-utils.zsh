@@ -5,8 +5,8 @@
 
 # git diff
 
-alias gd='git diff --ignore-cr-at-eol --ignore-space-at-eol --ignore-space-change --ignore-all-space --ignore-blank-lines'
-alias gD='git diff'
+alias gd='logAndRun git diff --ignore-cr-at-eol --ignore-space-at-eol --ignore-space-change --ignore-all-space --ignore-blank-lines'
+alias gD='logAndRun git diff'
 
 alias gdc='gd --cached'
 alias gDc='gD --cached'
@@ -43,7 +43,7 @@ function gdls() {
         from="$1"
         to="$2"
     fi
-    gd "$from" "$to" --stat
+    gd --stat "$from" "$to"
 }
 
 function gDl() {
@@ -73,7 +73,7 @@ function gDls() {
         from="$1"
         to="$2"
     fi
-    gD "$from" "$to" --stat
+    gD --stat "$from" "$to"
 }
 
 # git status
@@ -87,6 +87,9 @@ alias gcignore='git check-ignore -v'
 # git log
 
 alias gg='glog -15'
+alias gg3='glog -3'
+alias gg5='glog -5'
+
 alias ggg='glgg -4'
 alias gggg='glgg -6'
 
@@ -114,10 +117,11 @@ gco() {
 compdef _git gco=git-checkout
 
 
-alias __git_remove_bkp_rel_branches='sed -r "/->/b; /\/tags\//d; /\/releases\//d"'
-alias __git_output_local_branch='sed -r "/->/b; s#remotes/([^/]+)/(.*)#remotes/\1/\2 => \2#"'
+__git_remove_bkp_rel_branches() {
+    sed -r '/->/b; \#/tags/#d; \#/release(s/|-)#d'
+}
 
-__gb() {
+__gb_sc() {
     # How can I get a list of git branches, ordered by most recent commit?
     #   http://stackoverflow.com/questions/5188320
     # --sort=-committerdate : sort branch by commit date in descending order
@@ -125,22 +129,16 @@ __gb() {
     git branch --sort=committerdate "$@"
 }
 
-__gbb() {
+gbt() {
     [ -t 1 ] && local force_color_option=--color
-    __gb $force_color_option "$@" | __git_remove_bkp_rel_branches | __git_output_local_branch
+    __gb_sc $force_color_option -a "$@" | hint_git_simple_branch_name
 }
 
-__gbB() {
+gbtr() {
     [ -t 1 ] && local force_color_option=--color
-    __gb $force_color_option "$@" | __git_output_local_branch
+    __gb_sc $force_color_option -r "$@" | hint_git_simple_branch_name -v IS_REMOTE_MODE=1
 }
 
-alias gbt='__gbb -a'
-alias gbtr='__gbb --remote'
-alias gbtl='__gbb'
-alias gbT='__gbB -a'
-alias gbTr='__gbB --remote'
-alias gbTl='__gbB'
 
 # How to list branches that contain a given commit?
 # http://stackoverflow.com/questions/1419623
@@ -222,12 +220,23 @@ alias gaampf='git add -A && git commit --amend --no-edit && git push -f'
 
 alias lg='lazygit'
 
+# How to find/identify large commits in git history?
+#   https://stackoverflow.com/a/42544963/922688
+lsGitFileSizeInHis() {
+    git rev-list --objects --all |
+    git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' |
+    sed -n 's/^blob //p' |
+    sort --numeric-sort --key=2 |
+    cut -c 1-12,41- |
+    $(command -v gnumfmt || echo numfmt) --field=2 --to=iec-i --suffix=B --padding=7 --round=nearest
+}
+
 # misc
 
 __heavyOpenFileByApp() {
     [ $# -eq 0 ] && {
         echo "at least 1 app args" 1>&2
-        exit 1
+        return 1
     }
 
     readonly app="$1"
@@ -359,7 +368,7 @@ chgr() {
 }
 
 wgcl() {
-    local git_user
+    local git_user force_ssh_protocol=false
     local -a git_options=()
 
     # parse options
@@ -373,6 +382,10 @@ wgcl() {
             git_options+=--recurse-submodules
             shift
             ;;
+        -s)
+            force_ssh_protocol=true
+            shift
+            ;;
         *)
             break
             ;;
@@ -381,20 +394,31 @@ wgcl() {
 
     local url
     for url in "$@"; do
+        if [[ $force_ssh_protocol && "$url" =~ '^http' ]]; then
+            url=$(__gitUrl_Http2Git "$git_user")
+        fi
         whl git clone $git_options "$url"
     done
 }
 
-gitBatchClone() {
-    local git_user
+# git clone batch
+gclb() {
+    local git_user force_git=false
     [ "$1" = "-u" ] && {
         git_user="${2:-git}"
         shift 2
     }
+    [ "$1" = '-fg' ] && {
+        force_git=true
+        shift
+    }
 
     local url
     for url in "$@"; do
-        if [[ "$url" =~ '^http' ]]; then
+        if ! [[ $url =~ '\.git$' ]]; then
+            url="$url.git"
+        fi
+        if $force_git && [[ "$url" =~ '^http' ]]; then
             url=$(__gitUrl_Http2Git "$git_user")
         fi
 
@@ -402,7 +426,7 @@ gitBatchClone() {
     done
 }
 
-alias gitlabBatchClone='gitBatchClone -u gitlab'
+alias glabclb='gclb -u gitlab -fg'
 
 # git browse
 gbw() {
@@ -440,8 +464,14 @@ gbw() {
 #   It merges upstream changes by default, when it's really more polite to rebase over them, unless your collaborators enjoy a commit graph that looks like bedhead.
 #   It only updates the branch you're currently on, which means git push will shout at you for being behind on branches you don't particularly care about right now.
 # Solve them once and for all.
-alias gu='git-up && git fetch --tags'
+gu() {
+    git-up "$@"
+}
 # alias gu='git pull --rebase --autostash'
+
+gut() {
+    git-up "$@" && git fetch --tags
+}
 
 # git up recursively
 # Usage: gur [<dir1>  [<dir2> ...]]
@@ -465,7 +495,9 @@ gur() {
             continue
         }
 
-        find "$f" -maxdepth $maxdepth -follow -name .git -type d -o \( -name .svn -o -name target \) -prune -false |
+
+        # find "$f" -maxdepth $maxdepth -follow -name .git -type d -o \( -name .svn -o -name target \) -prune -false |
+        fd '^\.git$' --type=d -HI --max-depth="$maxdepth" "$f" |
         while read d; do
             $isFirst && isFirst=false || echo
 
@@ -474,7 +506,7 @@ gur() {
             (
                 cd "$d" && {
                     echo -e "\trepo path: $PWD\n\trepo url: $(git remote get-url origin)"
-                    gu
+                    gut
                 }
             ) || failedDirs=( "${failedDirs[@]}" "$d")
         done
@@ -491,6 +523,23 @@ gur() {
     fi
 }
 
+alias gsa='git submodule add'
+
+gpc() {
+    local c
+    for c; do
+        git push origin "$c:$(git_current_branch)"
+    done
+}
+
+gpfc() {
+    [ $# != 1 ] && {
+        echo "only 1 argument, but $@"
+        return 1
+    }
+    local c
+    git push -f origin "$1:$(git_current_branch)"
+}
 
 # TODO
 repush() {

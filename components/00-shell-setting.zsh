@@ -2,6 +2,10 @@
 # Env settings
 ###############################################################################
 
+# Disable CTRL-D from closing my window with the terminator terminal emulator)
+#   https://unix.stackexchange.com/a/139121/136953
+set -o ignoreeof
+
 export LANG=en_US.UTF-8
 export LC_CTYPE=UTF-8
 export EDITOR=vim
@@ -19,8 +23,13 @@ setopt inc_append_history
 setopt share_history
 
 # append brew man
-#export MANPATH="$(cat $ZSH_CACHE_DIR/man_path_cache):$MANPATH"
+# export MANPATH="$(cat $ZSH_CACHE_DIR/man_path_cache):$MANPATH"
 
+# man with brew
+mb() { (
+    export MANPATH="$(echo /usr/local/opt/*/share/man| tr ' ' :):$MANPATH"
+    man "$@"
+) }
 
 # linux - How can I read documentation about built in zsh commands? - Stack Overflow
 # https://stackoverflow.com/questions/4405382
@@ -76,20 +85,32 @@ done
 
 ### core utils ###
 
-alias pt=pstree
-ptc() {
-    pt "$@" | coat -n
+export LESS="${LESS}iXF"
+
+pt() {
+    pstree "$@" | coat -n
 }
+compdef pt=pstree
+
+pts() {
+    pt -s "$@" | coat -n
+}
+
 alias du='du -h'
-alias ncdu='ncdu --color=dark --confirm-quit'
+alias nd='ncdu --confirm-quit --show-percent --graph-style=half-block'
 #alias df='df -h'
 alias df='/bin/df -h | sort -k3,3h'
 
 alias ll='ls -lh'
-alias lls='ll -Sr'
-alias llv='ll -v'
-alias llt='ll -tr'
 alias llr='ll -r'
+# sort by size
+alias lls='ll -Sr'
+# sort by version
+alias llv='ll -v'
+# sort by modification time
+alias llt='ll -tr'
+# sort by creation time
+alias llc='ll -t --time=creation -r'
 
 alias rr=ranger
 
@@ -102,19 +123,31 @@ alias diff=colordiff
 alias bcp=bcompare
 
 alias grep='grep --color=auto --exclude-dir={.git,.hg,.svn,.cvs,bzr,CVS,target,.mvn,.gradle,.settings,build,_site,.idea,Pods,taobao-tomcat} --exclude=\*.{ipr,iml,iws,jar,war,zip,tmp}'
-export GREP_COLOR='1;7;33'
-alias rg='rg --colors=match:bg:yellow --colors=match:fg:0,0,0'
+export GREP_COLORS='mt=1;7;33'
 
-export LESS="${LESS}iXF"
+alias rg='rg --colors=match:bg:yellow --colors=match:fg:0,0,0'
+alias rgw='rg -w'
+alias rgi='rg -i'
+alias rgF='rg -F'
+alias rgP='rg -P'
+
+alias fdi='fd -i'
+alias fda='fd -HI'
+alias fdd='fd --type d'
 
 # https://github.com/facebook/zstd/issues/1526
 alias tzst='tar --use-compress-program zstd -cvf'
 
 
-mfdd() {
-    local f
+# MdFind Directories
+mfd() {
+    local clear_line=$'\033[2K\r' f
     mdfind "$@" | while IFS= read -r f; do
-        [ -d "$f" ] && echo "$f"
+        [ -d "$f" ] && {
+            echo -n . 1>&2
+            echo "$f"
+        }
+        printf "%s" "$clear_line" 1>&2
     done | sort
 }
 
@@ -143,6 +176,7 @@ alias vi=vim
 
 alias v=vim
 alias vv='col -b | v -'
+alias vv8='col -b | v -c "set tabstop=8 | retab" -'
 alias vw='v -R'
 alias vd='v -d'
 
@@ -179,7 +213,7 @@ alias gvd='gv -d'
 
 alias note='(cd ~/notes; gv)'
 
-function vc {
+vc() {
     (( $# == 0 )) && local -a files=( . ) || local -a files=( "$@" )
 
     local vc_app_dirs=(
@@ -191,10 +225,19 @@ function vc {
         [ -d "$vc_app" ] && break
     done
 
-    local file
-    for file in "${files[@]}"; do
-        open -a "$vc_app" "$file"
-        echo "Visual Studio Code open ${files[@]}"
+    local f
+    for f in "${files[@]}"; do
+        echo "Visual Studio Code open $f"
+        open -a "$vc_app" "$f"
+        sleep 0.3
+    done
+}
+
+vs() {
+    (( $# == 0 )) && local -a files=( . ) || local -a files=( "$@" )
+    for f in "${files[@]}"; do
+        echo "Visual Studio open $f"
+        open -a '/Applications/Visual Studio.app' "$f"
     done
 }
 
@@ -212,6 +255,7 @@ alias o..='open ..'
 
 
 export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
 # https://docs.brew.sh/FAQ#how-can-i-keep-old-versions-of-a-formula-when-upgrading
 export HOMEBREW_NO_INSTALL_CLEANUP=1
 
@@ -231,6 +275,31 @@ alias bcui='brew uninstall --cask'
 alias bri='brew reinstall'
 alias bcri='brew reinstall --cask'
 
+
+upMyBrew() {
+(
+    unset HOMEBREW_NO_AUTO_UPDATE
+    unset HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK
+
+    pp logAndRun brew update &&
+    logAndRun brew upgrade vim && logAndRun brew unlink vim &&
+    logAndRun brew upgrade homebrew/cask/macvim &&
+    logAndRun brew link --overwrite vim &&
+    logAndRun brew upgrade
+    # && pp brew upgrade $(brew ls --cask) &&
+)
+}
+
+upMyConfGitRepo() {
+    # update config git repo
+    logAndRun gur \
+        ~/.*vim* \
+        ~/.oh-my-zsh \
+        ~/.tmux* \
+        ~/.config
+}
+
+
 ### zsh/oh-my-zsh redefinition ###
 
 # improve alias d of oh-my-zsh: colorful lines, near index number and dir name(more convenient for human eyes)
@@ -241,7 +310,7 @@ alias d="dirs -v | head | sed 's/\t/ <=> /' | coat"
 alias t=tmux
 alias tma='exec tmux attach'
 
-alias sl=sloccount
+alias scc='scc -s Code'
 alias ts='trash -F'
 
 # speed up download
@@ -254,6 +323,7 @@ alias fpp='SHELL=/bin/bash fpp'
 alias p=fpp
 
 alias f=fzf
+alias pwsh='pwsh -NoLogo'
 
 ### network ###
 
@@ -307,7 +377,7 @@ pp() {
     }
 
     if [ -z "$port" ]; then
-        local -r proxy_ports=(13659 7070)
+        local -r proxy_ports=(7070)
 
         for port in $proxy_ports; do
             isTcpPortListening $port && break
@@ -372,7 +442,11 @@ compdef coat=cat
 alias awl=a2l
 
 catOneScreen() {
-    head -n $((LINES - 6))
+    head -n $((LINES - 5))
+}
+
+tailOneScreen() {
+    tail -n $((LINES - 5))
 }
 
 alias vzshrc='v ~/.zshrc'

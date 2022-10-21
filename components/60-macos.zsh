@@ -18,3 +18,7 @@ disableAppSecurity() {
 enableAppSecurity() {
     sudo spctl --master-enable
 }
+
+# mac辅助功能授权无效
+# https://blog.csdn.net/nicekwell/article/details/117768278
+alias ResetAccessibility='sudo tccutil reset Accessibility'
