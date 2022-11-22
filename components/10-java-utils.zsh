@@ -58,15 +58,17 @@ export_java_env_vars() {
 export_java_env_vars
 
 showJavaInfos() {
+    logAndRun gradle --version
     echo
-    echo "\$JAVA_HOME: $JAVA_HOME"
+    logAndRun mvn -v
     echo
     logAndRun type -a java
     logAndRun which -a java
     echo
-    logAndRun java -version
+    echoInteractiveInfo "\$JAVA_HOME:"
+    echo "$JAVA_HOME\nAbsulate path:\n$(ap "$JAVA_HOME")"
     echo
-    logAndRun mvn -v
+    logAndRun java -version
 }
 
 alias jvp='javap -J-Duser.language=en -J-Duser.country=US -cp .'
@@ -326,9 +328,10 @@ smMinOpen() {
 # sbt
 ###############################################################################
 
-# auto use java on JAVA_HOME instead of PATH
-alias sbt='sbt --java-home "$(eval echo \"\$JAVA_HOME\")"'
-
+function sbt() {
+    # auto use java on JAVA_HOME instead of PATH by --java-home option
+    findLocalBinOrDefaultToRun sbt sbt --java-home "$JAVA_HOME" "$@"
+}
 
 ###############################################################################
 # Gradle

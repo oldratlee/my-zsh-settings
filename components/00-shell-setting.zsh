@@ -90,7 +90,6 @@ export LESS="${LESS}iXF"
 pt() {
     pstree "$@" | coat -n
 }
-compdef pt=pstree
 
 pts() {
     pt -s "$@" | coat -n
@@ -130,6 +129,9 @@ alias rgw='rg -w'
 alias rgi='rg -i'
 alias rgF='rg -F'
 alias rgP='rg -P'
+alias rgl='rg -l'
+alias rgv='rg -v'
+alias rga='rg -uuu'
 
 alias fdi='fd -i'
 alias fda='fd -HI'
