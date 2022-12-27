@@ -2,19 +2,38 @@
 # Java/JVM Languages
 ###############################################################################
 
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+
+
 __getLatestJavaHomeForVersion() {
     local version="$1"
-    {
-        printf '%s\n' "$SDKMAN_CANDIDATES_DIR/java/$version"[.-]* |
-            grep -vP '\.fx-|-(gln|grl|mandrel|nik)$' |
-            sort -V |
-            tail -1
-    } 2> /dev/null
+    [ -n "$SDKMAN_CANDIDATES_DIR" ] || {
+        errorEcho "\$SDKMAN_CANDIDATES_DIR is empty!"
+        return 1
+    }
+
+    (set -o nullglob; printf '%s\n' "${SDKMAN_CANDIDATES_DIR}/java/$version"[.-]*) |
+        grep -vP '\.fx-|-(gln|grl|mandrel|nik)$' |
+        sort -V |
+        tail -1
 }
 
 # set JAVA_HOME
-setjvhm(){
+setjh(){
     export JAVA_HOME="$1"
+
+    local old_java_path=${commands[java]}
+    local old_java_dir=${old_java_path%/java}
+
+    if [ '/usr/bin/java' != "$old_java_path" ]; then
+        PATH=${PATH//$old_java_dir}
+    fi
+    PATH="$JAVA_HOME/bin:$PATH"
+    export PATH=${PATH//::/:}
 }
 
 alias cdjh='cd $JAVA_HOME'
@@ -25,7 +44,14 @@ export_java_env_vars() {
     local jv_version jv_home
     for jv_version in {6..42}; do
         jv_home=$(__getLatestJavaHomeForVersion $jv_version)
-        [ -n "$jv_home" ] || continue
+        [ -n "$jv_home" ] || {
+            unset JAVA"$jv_version"_HOME JAVA"$jv_version"HOME
+            unset JDK"$jv_version"_HOME JDK_"$jv_version"
+
+            unalias j${jv_version} 2>/dev/null || true
+
+            continue
+        }
 
         # export JAVAn_HOME, JAVAnHOME, like JAVA8_HOME, JAVA8HOME
         eval export JAVA"$jv_version"_HOME="'$jv_home'"
@@ -36,19 +62,12 @@ export_java_env_vars() {
         eval export JDK_"$jv_version"="'$jv_home'"
 
         # add JAVA_HOME switcher jn, like j9, j16
-        eval "alias j${jv_version}='setjvhm \$JAVA${jv_version}_HOME'"
-
-        if ((jv_version >= 10)); then
-            local jv_version_x=$((jv_version - 10))
-            (( jv_version_x == 0 )) && jv_version_x=
-            # add JAVA_HOME switcher jxn, like jx(for java 10), jx1(for java 11), jx7(for java 17)
-            eval "alias jx${jv_version_x}='setjvhm \$JAVA${jv_version}_HOME'"
-        fi
+        eval "alias j${jv_version}='setjh \$JAVA${jv_version}_HOME'"
     done
 
     # default JAVA_HOME
     export JAVA0_HOME="$SDKMAN_CANDIDATES_DIR/java/current"
-    alias j0='setjvhm $JAVA0_HOME'
+    alias j0='setjh $JAVA0_HOME'
 
     export JAVA_HOME="$JAVA0_HOME"
     # export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Duser.language=en -Duser.country=US -Xverify:none"
@@ -56,6 +75,7 @@ export_java_env_vars() {
     export MANPATH="$JAVA_HOME/man:$MANPATH"
 }
 export_java_env_vars
+
 
 showJavaInfos() {
     logAndRun gradle --version

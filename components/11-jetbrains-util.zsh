@@ -44,8 +44,9 @@ __jb_ide() {
     )
 }
 
-
-# Open a file in the LightEdit mode﻿
+# Command-line interface
+#   https://www.jetbrains.com/help/idea/working-with-the-ide-features-from-command-line.html
+# Open a file in the LightEdit mode
 #   https://www.jetbrains.com/help/idea/lightedit-mode.html
 alias ie='idea -e'
 alias pe='pycharm -e'

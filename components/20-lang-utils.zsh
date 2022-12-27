@@ -2,14 +2,14 @@
 # Go
 ###############################################################################
 
-export GOPATH=$HOME/.go
-export PATH=$PATH:$GOPATH/bin
+export GOPATH="$HOME/.go"
+export PATH="$PATH:$GOPATH/bin"
 
 ###############################################################################
 # Rust
 ###############################################################################
 
-export PATH=$HOME/.cargo/bin:$PATH
+export PATH="$HOME/.cargo/bin:$PATH"
 
 ###############################################################################
 # Haskell
@@ -130,11 +130,47 @@ alias lab='LANGUAGE="" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-lab'
 
 alias R='R --no-save --no-restore'
 
-alias pyenv='python3 -m venv'
+alias pyenv='"${PYT:-python3}" -m venv'
 
 pipup() {
     pip list --outdated | awk 'NR>2{print $1}' | xargs pip install --upgrade
 }
+
+# Python Venv Create
+pvc() {
+    local name="${1:-venv}"
+    logAndRun "${PYT:-python3}" -m venv "$name"
+
+    [ -f "requirements.txt" ] && {
+        logAndRun "$name/bin/pip" install -r requirements.txt
+    }
+
+    logAndRun source "$name/bin/activate"
+}
+
+# Python Venv Activate
+pva() {
+    local d="$PWD/dummy"
+    while true; do
+        d=$(dirname "$d")
+        [ "/" = "$d" ] && {
+            errorEcho "No python virtualenv found!"
+            return 1
+        }
+
+        local activate_file="$(set -o nullglob; echo $d/*/bin/activate)"
+        [[ -n "$activate_file" && -f "$activate_file" ]] || continue
+
+        local activate_bin_dir=$(dirname "$activate_file")
+        [[ -f "$activate_bin_dir/python" && -f "$activate_bin_dir/pip" ]] || continue
+
+        logAndRun source "$activate_file"
+        return
+    done
+}
+
+# Python Venv Deactivate
+alias pvd=deactivate
 
 # Python Virtaul Env
 pve() {

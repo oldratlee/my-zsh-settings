@@ -91,14 +91,14 @@ __swCMakeBuildTool() {
 # vcpkg
 ###############################################################################
 
-export VCPKG_ROOT=/usr/local/opt/vcpkg
+export VCPKG_ROOT="$HOME/.vcpkg"
+
 alias vp='vcpkg'
 alias vps='vcpkg search'
 alias vpi='vcpkg install'
 alias vpl='vcpkg list'
 
-#VP_CM_OPT='-DCMAKE_TOOLCHAIN_FILE=/Users/jerry/Codes/practices/cpp/vcpkg/scripts/buildsystems/vcpkg.cmake'
-VP_CM_PATH='/usr/local/opt/vcpkg/libexec/scripts/buildsystems/vcpkg.cmake'
+VP_CM_PATH="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
 VP_CM_OPT="-DCMAKE_TOOLCHAIN_FILE=$VP_CM_PATH"
 # CMG_OPTS="$VP_CM_OPT"
 
@@ -112,7 +112,9 @@ dvcmg() {
     logAndRun unset CMG_OPTS
 }
 
-attach_vcpkg_gcc() {
-    export CPATH=/usr/local/var/vcpkg/installed/x64-osx/include
-    export LIBRARY_PATH=/usr/local/var/vcpkg/installed/x64-osx/lib
+enable_vcpkg() {
+    # for compiler
+    export CPATH=$VCPKG_ROOT/installed/x64-osx/include
+    export LIBRARY_PATH=$VCPKG_ROOT/installed/x64-osx/lib
+    #
 }

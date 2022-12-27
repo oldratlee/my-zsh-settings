@@ -12,6 +12,10 @@ alias gdc='gd --cached'
 alias gDc='gD --cached'
 alias gdh='gd HEAD'
 alias gDh='gD HEAD'
+alias gdbc='git difftool --tool=bc4 -y'
+alias gdbch='git difftool --tool=bc4 -y HEAD --'
+alias gdi='git difftool --tool=idea -y --'
+alias gdih='git difftool --tool=idea -y HEAD --'
 
 alias gdorigin='gd origin/$(git_current_branch)'
 alias gDorigin='gD origin/$(git_current_branch)'
@@ -85,18 +89,18 @@ alias gs='git status -s' # I never use gs command but will mistype :)
 alias gcignore='git check-ignore -v'
 
 # git log
+unalias gg
+gg() {
+    glog --color -$LINES "$@" | catOneScreen
+}
+compdef _git gg=git-log
 
-alias gg='glog -15'
 alias gg3='glog -3'
 alias gg5='glog -5'
 
 alias ggg='glgg -4'
 alias gggg='glgg -6'
 
-ggonepage() {
-    glog --color "$@" | catOneScreen
-}
-compdef _git ggonepage=git-log
 
 ## git branch
 
@@ -528,7 +532,7 @@ alias gsa='git submodule add'
 gpc() {
     local c
     for c; do
-        git push origin "$c:$(git_current_branch)"
+        logAndRun git push origin "$c:$(git_current_branch)"
     done
 }
 
@@ -538,7 +542,7 @@ gpfc() {
         return 1
     }
     local c
-    git push -f origin "$1:$(git_current_branch)"
+    logAndRun git push -f origin "$1:$(git_current_branch)"
 }
 
 # TODO

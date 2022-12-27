@@ -15,9 +15,11 @@ export WINEDEBUG=-all
 HISTSIZE=50000
 SAVEHIST=50000
 
-setopt hist_ignore_space      # ignore commands that start with space
+# ignore commands that start with space
+setopt hist_ignore_space
+
 # https://superuser.com/questions/519596/share-history-in-multiple-zsh-shell
-#To save every command before it is executed (this is different from bash's history -a solution):
+# To save every command before it is executed (this is different from bash's history -a solution):
 setopt inc_append_history
 #To retrieve the history file everytime history is called upon.
 setopt share_history
@@ -92,7 +94,7 @@ pt() {
 }
 
 pts() {
-    pt -s "$@" | coat -n
+    pt -s "$@"
 }
 
 alias du='du -h'
@@ -101,6 +103,7 @@ alias nd='ncdu --confirm-quit --show-percent --graph-style=half-block'
 alias df='/bin/df -h | sort -k3,3h'
 
 alias ll='ls -lh'
+alias lld='ll -d'
 alias llr='ll -r'
 # sort by size
 alias lls='ll -Sr'
@@ -146,10 +149,8 @@ mfd() {
     local clear_line=$'\033[2K\r' f
     mdfind "$@" | while IFS= read -r f; do
         [ -d "$f" ] && {
-            echo -n . 1>&2
             echo "$f"
         }
-        printf "%s" "$clear_line" 1>&2
     done | sort
 }
 
@@ -179,6 +180,7 @@ alias vi=vim
 alias v=vim
 alias vv='col -b | v -'
 alias vv8='col -b | v -c "set tabstop=8 | retab" -'
+alias vv4='col -b | v -c "set tabstop=4 | retab" -'
 alias vw='v -R'
 alias vd='v -d'
 
@@ -210,6 +212,8 @@ gv() {
 }
 
 alias gvv='col -b | gv -'
+alias gvv8='col -b | gv -c "set tabstop=8 | retab" -'
+alias gvv4='col -b | gv -c "set tabstop=4 | retab" -'
 alias gvw='gv -R'
 alias gvd='gv -d'
 
@@ -227,11 +231,12 @@ vc() {
         [ -d "$vc_app" ] && break
     done
 
-    local f
+    local f isFirst=true
     for f in "${files[@]}"; do
+        $isFirst && isFirst=false || sleep 1
+
         echo "Visual Studio Code open $f"
         open -a "$vc_app" "$f"
-        sleep 0.3
     done
 }
 
@@ -256,8 +261,8 @@ compdef o=open
 alias o..='open ..'
 
 
-export HOMEBREW_NO_AUTO_UPDATE=1
-export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
+#export HOMEBREW_NO_AUTO_UPDATE=1
+#export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
 # https://docs.brew.sh/FAQ#how-can-i-keep-old-versions-of-a-formula-when-upgrading
 export HOMEBREW_NO_INSTALL_CLEANUP=1
 
@@ -284,8 +289,8 @@ upMyBrew() {
     unset HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK
 
     pp logAndRun brew update &&
-    logAndRun brew upgrade vim && logAndRun brew unlink vim &&
-    logAndRun brew upgrade homebrew/cask/macvim &&
+    logAndRun brew unlink macvim && logAndRun brew upgrade vim &&
+    logAndRun brew unlink vim && logAndRun brew upgrade macvim &&
     logAndRun brew link --overwrite vim &&
     logAndRun brew upgrade
     # && pp brew upgrade $(brew ls --cask) &&
@@ -298,7 +303,8 @@ upMyConfGitRepo() {
         ~/.*vim* \
         ~/.oh-my-zsh \
         ~/.tmux* \
-        ~/.config
+        ~/.config \
+        ~/.vcpkg
 }
 
 
@@ -447,6 +453,10 @@ catOneScreen() {
     head -n $((LINES - 5))
 }
 
+coatOneScreen() {
+    head -n $((LINES - 5)) | coat "$@"
+}
+
 tailOneScreen() {
     tail -n $((LINES - 5))
 }
@@ -469,3 +479,4 @@ rsh() {
         "$@" \
         zsh --login -i
 }
+
