@@ -91,7 +91,9 @@ alias gcignore='git check-ignore -v'
 # git log
 unalias gg
 gg() {
-    glog --color -$LINES "$@" | catOneScreen
+    local -a options_when_console
+    [ -t 1 ] && options_when_console=(--color -$LINES)
+    glog $options_when_console "$@" | catOneScreen
 }
 compdef _git gg=git-log
 
@@ -480,6 +482,8 @@ gut() {
 # git up recursively
 # Usage: gur [<dir1>  [<dir2> ...]]
 gur() {
+    echoInteractiveInfo "run: gur $*"
+
     local maxdepth=6
     if [ "$1" = "-d" ]; then
         local maxdepth="$2"

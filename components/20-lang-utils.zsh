@@ -5,17 +5,20 @@
 export GOPATH="$HOME/.go"
 export PATH="$PATH:$GOPATH/bin"
 
+
 ###############################################################################
 # Rust
 ###############################################################################
 
-export PATH="$HOME/.cargo/bin:$PATH"
+[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
+
 
 ###############################################################################
 # Haskell
 ###############################################################################
 
 [ -f "$HOME/.ghcup/env" ] && source "$HOME/.ghcup/env" # ghcup-env
+
 
 ###############################################################################
 # Erlang
@@ -44,6 +47,7 @@ erline() {
 
 export MANPATH=/usr/local/opt/erlang/lib/erlang/man:$MANPATH
 
+
 ###############################################################################
 # Lisp
 ###############################################################################
@@ -52,6 +56,7 @@ CLISP_DOC=/usr/local/opt/clisp/share/doc/clisp/doc
 
 alias schm='rlwrap -p 1\;32 -r -c -f $HOME/.scheme_completion.rlwrap scheme'
 
+
 ###############################################################################
 # Prolog
 ###############################################################################
@@ -59,6 +64,7 @@ alias schm='rlwrap -p 1\;32 -r -c -f $HOME/.scheme_completion.rlwrap scheme'
 alias sp='swipl'
 alias gpl='gprolog'
 alias bp='$HOME/Applications/BProlog/bp'
+
 
 ###############################################################################
 # Python
@@ -122,7 +128,7 @@ alias py=python3
 alias py3=python3
 
 unalias ipython
-alias ipy=ipython --matplotlib --pylab
+alias ipy='ipython --matplotlib --pylab'
 alias bpy=bpython
 
 alias nb='LANGUAGE="" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-notebook'
@@ -132,20 +138,28 @@ alias R='R --no-save --no-restore'
 
 alias pyenv='"${PYT:-python3}" -m venv'
 
+unalias pip
+alias pip='"${PYT:-python3}" -m pip'
+
 pipup() {
     pip list --outdated | awk 'NR>2{print $1}' | xargs pip install --upgrade
 }
 
 # Python Venv Create
 pvc() {
-    local name="${1:-venv}"
-    logAndRun "${PYT:-python3}" -m venv "$name"
+    local venv_dir_name="${1:-venv}"
+    local python="${PYT:-python3}"
 
+    # create virtualenv
+    logAndRun "$python" -m venv "$venv_dir_name"
+
+    # install requirements
     [ -f "requirements.txt" ] && {
-        logAndRun "$name/bin/pip" install -r requirements.txt
+        logAndRun "$venv_dir_name/bin/pip" install -r requirements.txt
     }
 
-    logAndRun source "$name/bin/activate"
+    # activate virtualenv
+    logAndRun source "$venv_dir_name/bin/activate"
 }
 
 # Python Venv Activate
@@ -216,12 +230,10 @@ relink_virtualenv() {
 
 #source $HOME/.rvm/scripts/rvm
 
+
 ###############################################################################
 # Javascript
 ###############################################################################
-
-
-
 
 # NVM: https://github.com/creationix/nvm
 #

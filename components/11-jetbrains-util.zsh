@@ -68,7 +68,7 @@ alias wbs='__jb_ide WebStorm'
 alias rbm='__jb_ide RubyMine'
 
 alias cln='__jb_ide CLion'
-alias gol='__jb_ide Goland'
+alias gld='__jb_ide Goland'
 alias rdr='__jb_ide Rider'
 
 alias dtg='__jb_ide datagrip'

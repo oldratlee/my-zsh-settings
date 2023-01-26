@@ -8,7 +8,6 @@ export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 
 
-
 __getLatestJavaHomeForVersion() {
     local version="$1"
     [ -n "$SDKMAN_CANDIDATES_DIR" ] || {
@@ -91,6 +90,7 @@ showJavaInfos() {
     logAndRun java -version
 }
 
+
 alias jvp='javap -J-Duser.language=en -J-Duser.country=US -cp .'
 alias jvpp='javap -J-Duser.language=en -J-Duser.country=US -cp . -p'
 alias jcc='$HOME/Codes/open/japi-compliance-checker/japi-compliance-checker.pl -skip-internal-packages internal -skip-internal-packages util -skip-internal-packages utils'
@@ -109,10 +109,6 @@ swJavaNetProxy() {
         echo "turn off java net proxy!"
     }
 }
-
-export JREBEL_HOME=$HOME/Applications/jrebel7.0.2
-
-export PATH="$SDKMAN_CANDIDATES_DIR/gatling/3.3.1/bin:$PATH"
 
 # decompile java
 dcj() {
@@ -140,6 +136,9 @@ dcj() {
 }
 
 alias dcjq='dcj -q'
+
+
+export JREBEL_HOME=$HOME/Applications/jrebel7.0.2
 
 ###############################################################################
 # Scala

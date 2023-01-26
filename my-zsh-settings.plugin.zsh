@@ -11,7 +11,7 @@ errorEcho() {
 }
 
 echoInteractiveInfo() {
-    [ -t 2 ] && warnEcho "$*" 1>&2
+    [ -t 2 ] && echo "\033[1;44m$*\033[0m" 1>&2
 }
 
 logAndRun() {

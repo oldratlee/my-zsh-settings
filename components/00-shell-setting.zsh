@@ -4,11 +4,19 @@
 
 # Disable CTRL-D from closing my window with the terminator terminal emulator)
 #   https://unix.stackexchange.com/a/139121/136953
-set -o ignoreeof
+(( $SHLVL == 1 )) && set -o ignoreeof
 
 export LANG=en_US.UTF-8
 export LC_CTYPE=UTF-8
 export EDITOR=vim
+
+# iTerm2 supports true colors, however, there's no official way of advertising this feature.
+#   https://gitlab.com/gnachman/iterm2/-/issues/5294
+# Variables are used to communicate information between components such as Python scripts and shell scripts.
+#   https://iterm2.com/documentation-variables.html
+# enable true-color support by default #1271
+#   https://github.com/helix-editor/helix/issues/1271
+[ -n "$ITERM_PROFILE" ] && export COLORTERM=truecolor
 
 export WINEDEBUG=-all
 
@@ -29,7 +37,7 @@ setopt share_history
 
 # man with brew
 mb() { (
-    export MANPATH="$(echo /usr/local/opt/*/share/man| tr ' ' :):$MANPATH"
+    export MANPATH="$(echo /usr/local/opt/*/share/man | tr ' ' :):$MANPATH"
     man "$@"
 ) }
 
@@ -53,7 +61,7 @@ export PATH="$HOME/.local/bin:$HOME/bin:$HOME/bin/useful-scripts/bin:$PATH"
 # set color theme of ls in terminal to GNU/Linux Style
 # use `which gdircolors` instead of `brew list | grep coreutils -q` for speedup
 which gdircolors &> /dev/null && {
-    alias ls='ls -F --show-control-chars --color=auto'
+    alias ls='ls --show-control-chars --color=auto'
     eval `gdircolors -b <(gdircolors --print-database)`
 }
 
@@ -97,22 +105,40 @@ pts() {
     pt -s "$@"
 }
 
+ptp() {
+    pt -p "${@:-$$}"
+}
+compdef ptp=kill
+
+
 alias du='du -h'
 alias nd='ncdu --confirm-quit --show-percent --graph-style=half-block'
 #alias df='df -h'
 alias df='/bin/df -h | sort -k3,3h'
 
+if which lsd &> /dev/null; then
+    unalias ls &> /dev/null
+    alias ls='lsd'
+fi
+
 alias ll='ls -lh'
+
 alias lld='ll -d'
+alias lsr='ls -r'
 alias llr='ll -r'
 # sort by size
+alias lss='ls -Sr'
 alias lls='ll -Sr'
 # sort by version
+alias lsv='ls -v'
 alias llv='ll -v'
 # sort by modification time
+alias lst='ls -tr'
 alias llt='ll -tr'
 # sort by creation time
+alias lsc='ls -t --time=creation -r'
 alias llc='ll -t --time=creation -r'
+
 
 alias rr=ranger
 
@@ -178,6 +204,9 @@ compdef ta=type
 alias vi=vim
 
 alias v=vim
+alias v8='vim -c "set tabstop=8"'
+alias v4='vim -c "set tabstop=4"'
+
 alias vv='col -b | v -'
 alias vv8='col -b | v -c "set tabstop=8 | retab" -'
 alias vv4='col -b | v -c "set tabstop=4 | retab" -'
@@ -186,16 +215,23 @@ alias vd='v -d'
 
 alias nv=nvim
 alias nvv='col -b | nv -'
+alias nvv8='col -b | nv -c "set tabstop=8 | retab" -'
+alias nvv4='col -b | nv -c "set tabstop=4 | retab" -'
 alias nvw='nv -R'
 alias nvd='nv -d'
 
 alias lv=lvim
 alias lvv='col -b | lv -'
+alias lvv8='col -b | lv -c "set tabstop=8 | retab" -'
+alias lvv4='col -b | lv -c "set tabstop=4 | retab" -'
 alias lvw='lv -R'
 alias lvd='lv -d'
 
 #alias gv=gvim
 gv() {
+    gvim "$@"
+    return
+
     local im=$(xkbswitch -g)
 
     if [ $im != 0 ]; then
@@ -288,9 +324,11 @@ upMyBrew() {
     unset HOMEBREW_NO_AUTO_UPDATE
     unset HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK
 
+    #logAndRun brew unlink homebrew/cask/macvim &&
     pp logAndRun brew update &&
-    logAndRun brew unlink macvim && logAndRun brew upgrade vim &&
-    logAndRun brew unlink vim && logAndRun brew upgrade macvim &&
+    logAndRun brew upgrade vim &&
+    logAndRun brew unlink vim &&
+    logAndRun brew upgrade homebrew/cask/macvim &&
     logAndRun brew link --overwrite vim &&
     logAndRun brew upgrade
     # && pp brew upgrade $(brew ls --cask) &&
@@ -299,12 +337,16 @@ upMyBrew() {
 
 upMyConfGitRepo() {
     # update config git repo
+    #
+    # ~/.config/lvim is contained in ~/.config
     logAndRun gur \
-        ~/.*vim* \
-        ~/.oh-my-zsh \
-        ~/.tmux* \
-        ~/.config \
-        ~/.vcpkg
+        ~/.*vim/ \
+        ~/.local/share/lunarvim/ \
+        ~/.config/ \
+        ~/.oh-my-zsh/ \
+        ~/.tmux*/ \
+        ~/.vcpkg/
+
 }
 
 
@@ -316,7 +358,15 @@ alias d="dirs -v | head | sed 's/\t/ <=> /' | coat"
 ### tools ###
 
 alias t=tmux
-alias tma='exec tmux attach'
+
+# tmux create or attach
+tca() {
+    if tmux ls &> /dev/null; then
+        tmux attach
+    else
+        exec tmux
+    fi
+}
 
 alias scc='scc -s Code'
 alias ts='trash -F'
@@ -450,11 +500,19 @@ compdef coat=cat
 alias awl=a2l
 
 catOneScreen() {
-    head -n $((LINES - 5))
+    if [ -t 1 ]; then
+        head -n $((LINES - 5)) | cat "$@"
+    else
+        cat "$@"
+    fi
 }
 
 coatOneScreen() {
-    head -n $((LINES - 5)) | coat "$@"
+    if [ -t 1 ]; then
+        head -n $((LINES - 5)) | coat "$@"
+    else
+        cat "$@"
+    fi
 }
 
 tailOneScreen() {
@@ -464,8 +522,11 @@ tailOneScreen() {
 alias vzshrc='v ~/.zshrc'
 
 # ReStart SHell
-# How to reset a shell environment? https://unix.stackexchange.com/questions/14885
 rsh() {
+    # just rerun zsh
+    exec "$SHELL" -li
+
+    # How to reset a shell environment? https://unix.stackexchange.com/questions/14885
     exec env -i \
         TERM=$TERM TERM_PROGRAM=$TERM_PROGRAM TERM_PROGRAM_VERSION=$TERM_PROGRAM_VERSION TERM_SESSION_ID=$TERM_SESSION_ID \
         ITERM_PROFILE=$ITERM_PROFILE ITERM_SESSION_ID=$ITERM_SESSION_ID \
