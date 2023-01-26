@@ -1,4 +1,59 @@
 ###############################################################################
+# Go
+###############################################################################
+
+export GOPATH="$HOME/.go"
+export PATH="$PATH:$GOPATH/bin"
+
+
+###############################################################################
+# Rust
+###############################################################################
+
+[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
+
+
+###############################################################################
+# CPP
+###############################################################################
+
+##################################################
+# vcpkg
+##################################################
+
+export VCPKG_ROOT="$HOME/.vcpkg"
+
+alias vp='vcpkg'
+alias vps='vcpkg search'
+alias vpi='vcpkg install'
+alias vpl='vcpkg list'
+
+VP_CM_PATH="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+VP_CM_OPT="-DCMAKE_TOOLCHAIN_FILE=$VP_CM_PATH"
+# CMG_OPTS="$VP_CM_OPT"
+
+# Enable VCpkg CMake Generation support
+evcmg() {
+    logAndRun set "CMG_OPTS=$CMG_OPTS"
+}
+
+# Disable VCpkg CMake Generation support
+dvcmg() {
+    logAndRun unset CMG_OPTS
+}
+
+enable_vcpkg() {
+    # for compiler
+    export CPATH=$VCPKG_ROOT/installed/x64-osx/include
+    export LIBRARY_PATH=$VCPKG_ROOT/installed/x64-osx/lib
+    #
+}
+
+[ -f "$VCPKG_ROOT/scripts/vcpkg_completion.zsh" ] &&
+    source "$VCPKG_ROOT/scripts/vcpkg_completion.zsh"
+
+
+###############################################################################
 # CMake
 ###############################################################################
 
@@ -87,34 +142,3 @@ __swCMakeBuildTool() {
     esac
 }
 
-###############################################################################
-# vcpkg
-###############################################################################
-
-export VCPKG_ROOT="$HOME/.vcpkg"
-
-alias vp='vcpkg'
-alias vps='vcpkg search'
-alias vpi='vcpkg install'
-alias vpl='vcpkg list'
-
-VP_CM_PATH="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
-VP_CM_OPT="-DCMAKE_TOOLCHAIN_FILE=$VP_CM_PATH"
-# CMG_OPTS="$VP_CM_OPT"
-
-# Enable VCpkg CMake Generation support
-evcmg() {
-    logAndRun set "CMG_OPTS=$CMG_OPTS"
-}
-
-# Disable VCpkg CMake Generation support
-dvcmg() {
-    logAndRun unset CMG_OPTS
-}
-
-enable_vcpkg() {
-    # for compiler
-    export CPATH=$VCPKG_ROOT/installed/x64-osx/include
-    export LIBRARY_PATH=$VCPKG_ROOT/installed/x64-osx/lib
-    #
-}

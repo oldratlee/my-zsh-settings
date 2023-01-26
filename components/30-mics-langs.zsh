@@ -1,72 +1,4 @@
 ###############################################################################
-# Go
-###############################################################################
-
-export GOPATH="$HOME/.go"
-export PATH="$PATH:$GOPATH/bin"
-
-
-###############################################################################
-# Rust
-###############################################################################
-
-[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
-
-
-###############################################################################
-# Haskell
-###############################################################################
-
-[ -f "$HOME/.ghcup/env" ] && source "$HOME/.ghcup/env" # ghcup-env
-
-
-###############################################################################
-# Erlang
-###############################################################################
-
-alias rb2=rebar
-alias rb=rebar3
-
-# Run erlang MFA(Module-Function-Args) conveniently
-erun() {
-    if [ $# -lt 2 ]; then
-        echo "Error: at least 2 args!"
-        return 1
-    fi
-    erl -s "$@" -s init stop -noshell
-}
-
-# Run erlang one-line script conveniently
-erline() {
-    if [ $# -ne 1 ]; then
-        echo "Error: Only need 1 arg!"
-        return 1
-    fi
-    erl -eval "$1" -s init stop -noshell
-}
-
-export MANPATH=/usr/local/opt/erlang/lib/erlang/man:$MANPATH
-
-
-###############################################################################
-# Lisp
-###############################################################################
-
-CLISP_DOC=/usr/local/opt/clisp/share/doc/clisp/doc
-
-alias schm='rlwrap -p 1\;32 -r -c -f $HOME/.scheme_completion.rlwrap scheme'
-
-
-###############################################################################
-# Prolog
-###############################################################################
-
-alias sp='swipl'
-alias gpl='gprolog'
-alias bp='$HOME/Applications/BProlog/bp'
-
-
-###############################################################################
 # Python
 ###############################################################################
 
@@ -288,3 +220,56 @@ alias nig='npm install -g'
 # tabtab source for packages
 # uninstall by removing these lines
 [[ -f ~/.config/tabtab/zsh/__tabtab.zsh ]] && . ~/.config/tabtab/zsh/__tabtab.zsh || true
+
+
+###############################################################################
+# Haskell
+###############################################################################
+
+[ -f "$HOME/.ghcup/env" ] && source "$HOME/.ghcup/env" # ghcup-env
+
+
+###############################################################################
+# Erlang
+###############################################################################
+
+alias rb2=rebar
+alias rb=rebar3
+
+
+erun() {
+    if [ $# -lt 2 ]; then
+        echo "Error: at least 2 args!"
+        return 1
+    fi
+    erl -s "$@" -s init stop -noshell
+}
+
+# Run erlang one-line script conveniently
+erline() {
+    if [ $# -ne 1 ]; then
+        echo "Error: Only need 1 arg!"
+        return 1
+    fi
+    erl -eval "$1" -s init stop -noshell
+}
+
+export MANPATH=/usr/local/opt/erlang/lib/erlang/man:$MANPATH
+
+
+###############################################################################
+# Lisp
+###############################################################################
+
+CLISP_DOC=/usr/local/opt/clisp/share/doc/clisp/doc
+
+alias schm='rlwrap -p 1\;32 -r -c -f $HOME/.scheme_completion.rlwrap scheme'
+
+
+###############################################################################
+# Prolog
+###############################################################################
+
+alias sp='swipl'
+alias gpl='gprolog'
+alias bp='$HOME/Applications/BProlog/bp'

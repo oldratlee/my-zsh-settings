@@ -109,6 +109,9 @@ ptp() {
     pt -p "${@:-$$}"
 }
 compdef ptp=kill
+ptpp() {
+    pt -p $PPID
+}
 
 
 alias du='du -h'
@@ -499,6 +502,14 @@ alias cq='c -q'
 compdef coat=cat
 alias awl=a2l
 
+coatOneScreen() {
+    if [ -t 1 ]; then
+        head -n $((LINES - 5)) | coat "$@"
+    else
+        cat "$@"
+    fi
+}
+
 catOneScreen() {
     if [ -t 1 ]; then
         head -n $((LINES - 5)) | cat "$@"
@@ -507,11 +518,11 @@ catOneScreen() {
     fi
 }
 
-coatOneScreen() {
+tailOneScreen() {
     if [ -t 1 ]; then
-        head -n $((LINES - 5)) | coat "$@"
+        gtail "$@" -n $((LINES - 5))
     else
-        cat "$@"
+        gtail "$@"
     fi
 }
 
