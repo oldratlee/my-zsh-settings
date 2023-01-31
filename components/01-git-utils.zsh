@@ -364,10 +364,13 @@ chgr() {
             local url=$(git remote get-url origin)
             if [[ "$url" =~ '^http'  ]]; then
                 local gitUrl=$(__gitUrl_Http2Git)
-                echo -e "CHANGE $PWD :\n\t$url\n\tto\n\t$gitUrl"
+                warnEcho "CHANGE $PWD :"
+                echo -e "\t$url\n\tto\n\t$gitUrl"
+
                 git remote set-url origin $gitUrl
             else
-                echo -e "Ignore $PWD :\n\t$url"
+                echo "Ignore $PWD :"
+                echo -e "\t$url"
             fi
         )
     done

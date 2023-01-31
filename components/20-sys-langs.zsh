@@ -44,9 +44,8 @@ dvcmg() {
 
 enable_vcpkg() {
     # for compiler
-    export CPATH=$VCPKG_ROOT/installed/x64-osx/include
-    export LIBRARY_PATH=$VCPKG_ROOT/installed/x64-osx/lib
-    #
+    export CPATH="$VCPKG_ROOT/installed/x64-osx/include"
+    export LIBRARY_PATH="$VCPKG_ROOT/installed/x64-osx/lib"
 }
 
 [ -f "$VCPKG_ROOT/scripts/vcpkg_completion.zsh" ] &&

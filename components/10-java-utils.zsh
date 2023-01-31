@@ -16,14 +16,31 @@ __getLatestJavaHomeForVersion() {
     }
 
     (set -o nullglob; printf '%s\n' "${SDKMAN_CANDIDATES_DIR}/java/$version"[.-]*) |
-        grep -vP '\.fx-|-(gln|grl|mandrel|nik)$' |
-        sort -V |
-        tail -1
+        command grep -v '\.fx-|-(gln|grl|mandrel|nik)$' |
+        command sort -V |
+        command tail -1
 }
 
 # set JAVA_HOME
 setjh(){
-    export JAVA_HOME="$1"
+    local java_home="$1"
+
+    if [ -z "$java_home" ]; then
+        local -r sdk_mvn_path=~/.sdkman/candidates/java
+        local jh
+        select jh in  $(command ls -v "$sdk_mvn_path" | command grep -v current); do
+            [ -n "$jh" ] && break
+        done
+        [ -n "$jh" ] || return 1
+        java_home="$sdk_mvn_path/$jh"
+    fi
+
+    if [ ! -e "$java_home" ]; then
+        errorEcho "java home($java_home) not existed"
+        return 1
+    fi
+
+    export JAVA_HOME="$java_home"
 
     local old_java_path=${commands[java]}
     local old_java_dir=${old_java_path%/java}
@@ -41,40 +58,39 @@ export_java_env_vars() {
     #export JAVA_HOME=$(/usr/libexec/java_home -v 1.6)
     #export JAVA6_HOME='/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home'
     local jv_version jv_home
-    for jv_version in {6..42}; do
+    for jv_version in {6..25}; do
         jv_home=$(__getLatestJavaHomeForVersion $jv_version)
-        [ -n "$jv_home" ] || {
-            unset JAVA"$jv_version"_HOME JAVA"$jv_version"HOME
-            unset JDK"$jv_version"_HOME JDK_"$jv_version"
+        if [ -z "$jv_home" ]; then
+            unset JAVA${jv_version}_HOME JAVA${jv_version}HOME
+            unset JDK${jv_version}_HOME JDK_${jv_version}
 
             unalias j${jv_version} 2>/dev/null || true
 
             continue
-        }
+        fi
 
         # export JAVAn_HOME, JAVAnHOME, like JAVA8_HOME, JAVA8HOME
-        eval export JAVA"$jv_version"_HOME="'$jv_home'"
-        eval export JAVA"$jv_version"HOME="'$jv_home'"
+        eval export JAVA${jv_version}_HOME="'$jv_home'"
+        eval export JAVA${jv_version}HOME="'$jv_home'"
 
         # export JDKn_HOME, JDK_n, like JDK8_HOME, JDK_8
-        eval export JDK"$jv_version"_HOME="'$jv_home'"
-        eval export JDK_"$jv_version"="'$jv_home'"
+        eval export JDK${jv_version}_HOME="'$jv_home'"
+        eval export JDK_${jv_version}="'$jv_home'"
 
         # add JAVA_HOME switcher jn, like j9, j16
-        eval "alias j${jv_version}='setjh \$JAVA${jv_version}_HOME'"
+        eval alias j${jv_version}="'setjh \"\$JAVA${jv_version}_HOME\"'"
     done
 
     # default JAVA_HOME
     export JAVA0_HOME="$SDKMAN_CANDIDATES_DIR/java/current"
-    alias j0='setjh $JAVA0_HOME'
+    alias j0='setjh "$JAVA0_HOME"'
 
-    export JAVA_HOME="$JAVA0_HOME"
     # export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Duser.language=en -Duser.country=US -Xverify:none"
     export JAVA_OPTS="-Duser.language=en -Duser.country=US -Xverify:none"
     export MANPATH="$JAVA_HOME/man:$MANPATH"
 }
 export_java_env_vars
-
+j0
 
 showJavaInfos() {
     logAndRun gradle --version
@@ -283,12 +299,16 @@ muv() {
 # create maven wrapper
 # http://mvnrepository.com/artifact/io.takari/maven
 mwrapper() {
-    local wrapper_mvn_version="${1:-$(
-        # the version of maven command on the path
-        command mvn -v | awk '/^Apache Maven/ {print $3}'
-    )}"
+    local -r sdk_mvn_path=~/.sdkman/candidates/maven
+    local latest_ver
+    latest_ver=$(command ls -vr "$sdk_mvn_path" | command grep -v current | command head -1)
+
+    local wrapper_mvn_version="${1:-$latest_ver}"
+    # https://maven.apache.org/wrapper/
+    logAndRun "$sdk_mvn_path/$latest_ver/bin/mvn" wrapper:wrapper -Dmaven="$wrapper_mvn_version"
+
     # http://mvnrepository.com/artifact/io.takari/maven
-    command mvn -N io.takari:maven:0.7.7:wrapper -Dmaven="$wrapper_mvn_version"
+    # command mvn -N io.takari:maven:0.7.7:wrapper -Dmaven="$wrapper_mvn_version"
 }
 
 # Runs duplicate check on the maven classpaths

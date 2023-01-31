@@ -116,19 +116,22 @@ ptpp() {
 
 alias du='du -h'
 alias nd='ncdu --confirm-quit --show-percent --graph-style=half-block'
-#alias df='df -h'
+#alias df='command df -h'
 alias df='/bin/df -h | sort -k3,3h'
 
 if which lsd &> /dev/null; then
     unalias ls &> /dev/null
-    alias ls='lsd'
+    alias ls='command lsd'
 fi
 
 alias ll='ls -lh'
 
 alias lld='ll -d'
+alias lsd='ls -d'
+
 alias lsr='ls -r'
 alias llr='ll -r'
+
 # sort by size
 alias lss='ls -Sr'
 alias lls='ll -Sr'
@@ -139,8 +142,8 @@ alias llv='ll -v'
 alias lst='ls -tr'
 alias llt='ll -tr'
 # sort by creation time
-alias lsc='ls -t --time=creation -r'
-alias llc='ll -t --time=creation -r'
+alias lsc='command ls --color=auto -t --time=creation -r'
+alias llc='command ls --color=auto -l -t --time=creation -r'
 
 
 alias rr=ranger
