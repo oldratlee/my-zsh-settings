@@ -2,25 +2,24 @@
 # Docker
 ###############################################################################
 
+
 alias dk=docker
 alias dkc='docker create'
 
 alias dkr='docker run'
 alias dkrr='docker run --rm'
-
-alias dkri='docker run -i -t'
 alias dkrri='docker run --rm -i -t'
-
-alias dkrd='docker run -d'
 alias dkrrd='docker run --rm -d'
-
-alias dkrm='docker rm'
-alias dkrmi='docker rmi'
+alias dkri='docker run -i -t'
+alias dkrd='docker run -d'
 
 alias dks='docker start'
 alias dksi='docker start -i'
 alias dkrs='docker restart'
 alias dkstop='docker stop'
+
+alias dkrm='docker rm'
+alias dkrmi='docker rmi'
 
 alias dki='docker inspect'
 alias dkps='docker ps'

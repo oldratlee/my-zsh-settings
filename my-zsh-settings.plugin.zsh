@@ -3,15 +3,31 @@
 ###############################################################################
 
 warnEcho() {
-    [ -t 1 ] && echo "\033[1;33;44m$*\033[0m" || echo "$*"
+    if [ -t 1 ]; then
+        printf '\e[1;33;44m%s\e[0m\n' "$*"
+    else
+        printf '%s\n' "$*"
+    fi
 }
 
 errorEcho() {
-    [ -t 1 ]  && echo "\033[1;36;41m$*\033[0m" || echo "$*"
+    if [ -t 1 ]; then
+        printf '\e[1;36;41m%s\e[0m\n' "$*"
+    else
+        printf '%s\n' "$*"
+    fi
 }
 
-echoInteractiveInfo() {
-    [ -t 2 ] && echo "\033[1;44m$*\033[0m" 1>&2
+interactiveInfo() {
+    if [ -t 2 ]; then
+        printf '\e[1;37;44m%s\e[0m\n' "$*" >&2
+    fi
+}
+
+interactiveError() {
+    if [ -t 2 ]; then
+        printf '\e[1;36;41m%s\e[0m\n' "$*" >&2
+    fi
 }
 
 logAndRun() {
@@ -33,7 +49,7 @@ logAndRun() {
     done
 
     local infoMsg="${msg:+$msg\n}$($profileMode && echo -E "Run under work directory $PWD\\n")run cmd: $*"
-    echoInteractiveInfo "$infoMsg"
+    interactiveInfo "$infoMsg"
     if $profileMode; then
         time "$@"
     else
@@ -58,7 +74,7 @@ findLocalBinOrDefaultToRun() {
     while true; do
         [ "/" = "$d" ] && {
             if target="$(whence -p $default_bin)"; then
-                echoInteractiveInfo "use default bin $default_bin: $target"
+                interactiveInfo "use default bin $default_bin: $target"
                 break
             else
                 errorEcho "No default bin($default_bin) found!"
@@ -68,7 +84,7 @@ findLocalBinOrDefaultToRun() {
 
         [ -f "$d/$local_bin" ] && {
             target="$(realpath "$d" --relative-to="$PWD")/$local_bin"
-            echoInteractiveInfo "use local bin $local_bin: $target"
+            interactiveInfo "use local bin $local_bin: $target"
             break
         }
 
@@ -78,15 +94,12 @@ findLocalBinOrDefaultToRun() {
     logAndRun "$target" "$@"
 }
 
+# while
 whl() {
-    local loopEvenSuccess=false sleepTime=1
+    local loopEvenSuccess=false sleepTime=1 max_try=20
     local ignore_exit_codes=()
     while true; do
         case "$1" in
-        -f)
-            loopEvenSuccess=true
-            shift
-            ;;
         -t)
             sleepTime="$2"
             shift 2
@@ -95,32 +108,40 @@ whl() {
             ignore_exit_codes+="$2"
             shift 2
             ;;
+        -f)
+            loopEvenSuccess=true
+            shift
+            ;;
+        -m)
+            max_try="$2"
+            shift 2
+            ;;
         *)
             break
             ;;
         esac
     done
 
-    local counter=1 lastExitCode=0
-    while true ; do
-        if ((counter == 1)) || ((lastExitCode != 0)) ; then
-            echoInteractiveInfo "Try $counter: $*"
+    local counter lastExitCode=0
+    for ((counter = 0; counter < max_try; ++counter)) ; do
+        if (( counter == 0 )); then
+            interactiveInfo "[$((counter + 1))] Try: $*"
+        elif ((lastExitCode != 0)) ; then
+            interactiveError "[$((counter + 1))] Retry(last status: $lastExitCode): $*"
         else
-            echoInteractiveInfo "Force loop $counter: $*"
+            interactiveInfo "[$((counter + 1))] Force loop: $*"
         fi
         "$@"
 
         lastExitCode=$?
-
         if ((lastExitCode == 0)) && ! $loopEvenSuccess ; then
             break
         fi
 
-        ((counter++))
         sleep $sleepTime
     done
 
-    echoInteractiveInfo "finished after $counter try: $*"
+    interactiveInfo "stopped after $counter try: $*"
 }
 compdef whl=time
 
@@ -131,7 +152,7 @@ compdef whl=time
 
 ___my_setting_plugin_dir_name___="$(dirname "$0")"
 
-for ___my_setting_plugin_name___ in "$___my_setting_plugin_dir_name___/components"/*; do
+for ___my_setting_plugin_name___ in "$___my_setting_plugin_dir_name___/components"/*.zsh; do
     source "$___my_setting_plugin_name___"
 done
 

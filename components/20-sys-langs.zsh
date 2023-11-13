@@ -5,6 +5,13 @@
 export GOPATH="$HOME/.go"
 export PATH="$PATH:$GOPATH/bin"
 
+# https://developer.aliyun.com/mirror/goproxy
+export GOPROXY=https://mirrors.aliyun.com/goproxy/
+
+alias gobv='go build -x -v'
+alias gocb='go clean && go build'
+alias gocbv='go clean && go build -x -v'
+
 
 ###############################################################################
 # Rust

@@ -2,6 +2,38 @@
 # Python
 ###############################################################################
 
+# ZSH_PIP_INDEXES='http://pypi.douban.com/simple/'
+
+unalias ipython
+alias ipy='ipython --matplotlib --pylab'
+alias bpy=bpython
+
+alias nb='LANGUAGE="" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-notebook'
+alias lab='LANGUAGE="" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-lab'
+
+alias pyenv='"${PY:-python3}" -m venv'
+
+unalias pip
+pip() {
+    [ -n "${PY:-}" ] && interactiveInfo "use \$PY: $PY"
+    "${PY:-python3}" -m pip "$@"
+}
+pip3() {
+    pip "$@"
+}
+
+
+pipup() {
+    pip list --outdated | awk 'NR>2{print $1}' | xargs pip install --upgrade
+}
+
+unalias pipir
+
+pipir() {
+    local req="${1:-requirements.txt}"
+    pip install -r "$req"
+}
+
 # export PATH="$HOME/.miniconda3/bin:$PATH"
 
 __setupMiniconda3() {
@@ -37,13 +69,13 @@ ame() {
     else
         # select a_env in `conda info --envs | awk '/^[^#]/{print $1}'`; do
         select a_env in `find $HOME/.miniconda3/envs -maxdepth 1 -mindepth 1 -type d | xargs -n1 basename`; do
-            [ -n "$a_env" ] && {
+            if [ -n "$a_env" ]; then
                 dme
                 echo
                 #logAndRun source activate "$a_env"
                 logAndRun conda activate "$a_env"
                 break
-            }
+            fi
         done
     fi
 }
@@ -54,41 +86,58 @@ dme() {
 }
 
 
-ZSH_PIP_INDEXES='http://pypi.douban.com/simple/'
-
-alias py=python3
-alias py3=python3
-
-unalias ipython
-alias ipy='ipython --matplotlib --pylab'
-alias bpy=bpython
-
-alias nb='LANGUAGE="" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-notebook'
-alias lab='LANGUAGE="" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-lab'
-
-alias R='R --no-save --no-restore'
-
-alias pyenv='"${PYT:-python3}" -m venv'
-
-unalias pip
-alias pip='"${PYT:-python3}" -m pip'
-
-pipup() {
-    pip list --outdated | awk 'NR>2{print $1}' | xargs pip install --upgrade
-}
-
 # Python Venv Create
 pvc() {
+    local recreate=false req_file=requirements.txt
+    while true; do
+        case "$1" in
+        -r)
+            recreate=true
+            shift
+            ;;
+        -f)
+            req_file="$2"
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+        esac
+    done
+
+    [ -n "${PY:-}" ] && interactiveInfo "use \$PY: $PY"
+    local python="${PY:-python3}"
+    if command -v "$python" &> /dev/null; then
+        python=$(command -v "$python")
+        python=$(readlink -f "$python")
+    else
+        errorEcho "$python command not found!"
+        return 1
+    fi
+
     local venv_dir_name="${1:-venv}"
-    local python="${PYT:-python3}"
+    if [ -e "$venv_dir_name" ]; then
+        if [ -d "$venv_dir_name" ] && $recreate; then
+            rm -rf "$venv_dir_name"
+        else
+            errorEcho "$venv_dir_name is not a directory, can NOT recreate!"
+            return 1
+        fi
+    fi
 
+    local moreVenvOption=
+    "$python" -c 'import sys; sys.version_info >= (3, 9) or exit(1)' && moreVenvOption=(--upgrade-deps)
     # create virtualenv
-    logAndRun "$python" -m venv "$venv_dir_name"
-
-    # install requirements
-    [ -f "requirements.txt" ] && {
-        logAndRun "$venv_dir_name/bin/pip" install -r requirements.txt
+    logAndRun "$python" -m venv $moreVenvOption "$venv_dir_name" || {
+        errorEcho "fail to create venv!"
+        return 1
     }
+
+    # install requirements.txt
+    if [ -f "$req_file" ]; then
+        logAndRun "$venv_dir_name/bin/pip" install -r "$req_file" ||
+            errorEcho "fail to install $req_file!"
+    fi
 
     # activate virtualenv
     logAndRun source "$venv_dir_name/bin/activate"
@@ -105,10 +154,15 @@ pva() {
         }
 
         local activate_file="$(set -o nullglob; echo $d/*/bin/activate)"
+        [[ -n "$activate_file" && -f "$activate_file" ]] ||
+            activate_file="$(set -o nullglob; echo $d/.venv/bin/activate)"
         [[ -n "$activate_file" && -f "$activate_file" ]] || continue
 
         local activate_bin_dir=$(dirname "$activate_file")
-        [[ -f "$activate_bin_dir/python" && -f "$activate_bin_dir/pip" ]] || continue
+        [[ -f "$activate_bin_dir/python" && -f "$activate_bin_dir/pip" ]] || {
+            interactiveError "find $activate_file, but without related python or pip file, IGNORED!"
+            continue
+        }
 
         logAndRun source "$activate_file"
         return
@@ -134,27 +188,78 @@ pve() {
     done
 }
 
-relink_virtualenv() {
-    # relink python 2
-    (
-        cd $HOME/.virtualenv
-        find -type l -xtype l -delete
-        local d
-        for d in *; do
-            virtualenv $d
-        done
-    )
-    # relink python 3
-    (
-        cd $HOME/.pyenv
-        find -type l -xtype l -delete
-        local d
-        for d in *; do
-            python3 -m venv $d
-        done
-    )
+
+export POETRY_HOME="$HOME/.pypeotry"
+
+alias po=poetry
+alias por='poetry run'
+
+alias poa='poetry add'
+
+alias pock='poetry lock'
+alias pock='poetry lock'
+
+alias pdt='poetry show --tree'
+
+alias pocdenv='$(poetry env info --path)'
+
+poreq() {
+    local -r req_file=requirements.txt
+    local dev_groups=dev
+    local -a options=(--without-urls --without-hashes -f "$req_file")
+    while true; do
+        case "$1" in
+        -d)
+            dev_groups="$2"
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+        esac
+    done
+
+    logAndRun poetry export "${options[@]}" --output requirements-main.txt "$@"
+    # && sed -i -r 's/\s*;.*$//' requirements-main.txt
+
+    logAndRun poetry export "${options[@]}" --output requirements-dev.txt --with="$dev_groups" "$@"
+    # && sed -i -r 's/\s*;.*$//' requirements-dev.txt
+
+    if [ ! -f "$req_file" ]; then
+        logAndRun ln -sr requirements-dev.txt "$req_file"
+    fi
 }
 
+pova() {
+    source "$(poetry env info --path)/bin/activate"
+}
+
+###############################################################################
+# R
+###############################################################################
+
+alias R='R --quiet --no-save --no-restore-data'
+# https://github.com/randy3k/radian
+alias rn='radian --quiet'
+alias Rscript='Rscript --vanilla'
+
+rst() {
+    local cmd=(open -a /Applications/RStudio.app)
+    if (($# == 0)); then
+        if [[ -n "$(echo *.Rproj(N))" ]]; then
+            # https://zsh.sourceforge.io/Doc/Release/Expansion.html#Glob-Qualifiers
+            logAndRun "${cmd[@]}" *.Rproj
+        else
+            echo "No R Project found!"
+            return 1
+        fi
+    else
+        logAndRun "${cmd[@]}" "$@"
+    fi
+}
+
+
+alias q=quarto
 
 ###############################################################################
 # Ruby

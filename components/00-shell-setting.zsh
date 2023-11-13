@@ -35,12 +35,6 @@ setopt share_history
 # append brew man
 # export MANPATH="$(cat $ZSH_CACHE_DIR/man_path_cache):$MANPATH"
 
-# man with brew
-mb() { (
-    export MANPATH="$(echo /usr/local/opt/*/share/man | tr ' ' :):$MANPATH"
-    man "$@"
-) }
-
 # linux - How can I read documentation about built in zsh commands? - Stack Overflow
 # https://stackoverflow.com/questions/4405382
 # Is there a zsh equivalent to the bash `help` builtin? - Super User
@@ -73,21 +67,6 @@ which gdircolors &> /dev/null && {
 # https://github.com/zdharma/history-search-multi-word#introduction
 zstyle :plugin:history-search-multi-word reset-prompt-protect 1
 
-# Ubuntu’s command-not-found equivalent for Homebrew on macOS
-# https://github.com/Homebrew/homebrew-command-not-found
-#if [ -e "$ZSH/cache/homebrew-command-not-found-init" ]; then
-#    eval "$(cat "$ZSH/cache/homebrew-command-not-found-init")"
-#
-#    (( $(date -r "$ZSH/cache/homebrew-command-not-found-init" +%s) < $(date -d 'now - 7 days' +%s) )) && (
-#        touch "$ZSH/cache/homebrew-command-not-found-init"
-#        # backgroud proccess that run in subshell will not output job control message
-#        brew command-not-found-init > "$ZSH/cache/homebrew-command-not-found-init" &
-#    )
-#else
-#    # backgroud proccess that run in subshell will not output job control message
-#    ( brew command-not-found-init > "$ZSH/cache/homebrew-command-not-found-init" & )
-#fi
-
 # open file with default application
 for ext in doc{,x} ppt{,x} xls{,x} key pdf png jp{,e}g htm{,l} m{,k}d markdown asta txt xml xmind java c{,pp} .h{,pp}; do
     alias -s $ext=open
@@ -96,6 +75,7 @@ done
 ### core utils ###
 
 export LESS="${LESS}iXF"
+alias lev='LESS=-Ri less'
 
 pt() {
     pstree "$@" | coat -n
@@ -113,9 +93,15 @@ ptpp() {
     pt -p $PPID
 }
 
-
+function mdd() {
+    (($# != 1)) && {
+        errorEcho "require 1 argument, but got $*"
+        return 1
+    }
+    md "$1" && cd "$1"
+}
 alias du='du -h'
-alias nd='ncdu --confirm-quit --show-percent --graph-style=half-block'
+alias nd='ncdu --confirm-quit --show-percent --show-itemcount --graph-style=half-block'
 #alias df='command df -h'
 alias df='/bin/df -h | sort -k3,3h'
 
@@ -145,6 +131,9 @@ alias llt='ll -tr'
 alias lsc='command ls --color=auto -t --time=creation -r'
 alias llc='command ls --color=auto -l -t --time=creation -r'
 
+alias lsx='ls --group-directories-first -X'
+alias llx='ll --group-directories-first -X'
+
 
 alias rr=ranger
 
@@ -166,6 +155,7 @@ alias rgF='rg -F'
 alias rgP='rg -P'
 alias rgl='rg -l'
 alias rgv='rg -v'
+alias rgh='rg --hidden'
 alias rga='rg -uuu'
 
 alias fdi='fd -i'
@@ -176,15 +166,22 @@ alias fdd='fd --type d'
 alias tzst='tar --use-compress-program zstd -cvf'
 
 
+# mdfind - Disable debug output: [UserQueryParser] Loading keywords and predicates for locale
+# https://developer.apple.com/forums/thread/728927
+mdfind() {
+    command mdfind "$@" 2> >(
+        rg --line-buffered -Fv ' [UserQueryParser] Loading keywords and predicates for locale ' >&2
+    )
+}
+
 # MdFind Directories
 mfd() {
-    local clear_line=$'\033[2K\r' f
-    mdfind "$@" | while IFS= read -r f; do
-        [ -d "$f" ] && {
-            echo "$f"
-        }
+    local f
+    mdfind -name "$@" | while IFS= read -r f; do
+        [ -d "$f" ] && printf '%s\n' "$f"
     done | sort
 }
+compdef mfd=mdfind
 
 # Remove duplicate entries in a file without sorting
 # http://www.commandlinefu.com/commands/view/4389
@@ -192,10 +189,12 @@ mfd() {
 
 # show type -a and which -a info together, very convenient!
 ta() {
-    echo "type -a:\n"
+    warnEcho "type -a:"
     # type buildin command can output which file the function is definded. COOL!
     type -a "$@"
-    echo "\nwhich -a:\n"
+
+    echo
+    warnEcho "which -a:"
     # which buildin command can output the function implementation. COOL!
     which -a "$@"
 }
@@ -207,31 +206,43 @@ compdef ta=type
 
 ### editor ###
 
-alias vi=vim
+alias vi=v
 
 alias v=vim
-alias v8='vim -c "set tabstop=8"'
-alias v4='vim -c "set tabstop=4"'
+alias v8='v -c "set tabstop=8"'
+alias v4='v -c "set tabstop=4"'
 
 alias vv='col -b | v -'
 alias vv8='col -b | v -c "set tabstop=8 | retab" -'
 alias vv4='col -b | v -c "set tabstop=4 | retab" -'
+
 alias vw='v -R'
 alias vd='v -d'
 
+
 alias nv=nvim
+alias nv8='nv -c "set tabstop=8"'
+alias nv4='nv -c "set tabstop=4"'
+
 alias nvv='col -b | nv -'
 alias nvv8='col -b | nv -c "set tabstop=8 | retab" -'
 alias nvv4='col -b | nv -c "set tabstop=4 | retab" -'
+
 alias nvw='nv -R'
 alias nvd='nv -d'
 
+
 alias lv=lvim
+alias lv8='lv -c "set tabstop=8"'
+alias lv4='lv -c "set tabstop=4"'
+
 alias lvv='col -b | lv -'
 alias lvv8='col -b | lv -c "set tabstop=8 | retab" -'
 alias lvv4='col -b | lv -c "set tabstop=4 | retab" -'
+
 alias lvw='lv -R'
 alias lvd='lv -d'
+
 
 #alias gv=gvim
 gv() {
@@ -252,10 +263,13 @@ gv() {
         xkbswitch -s $im
     fi
 }
+alias gv8='gv -c "set tabstop=8"'
+alias gv4='gv -c "set tabstop=4"'
 
 alias gvv='col -b | gv -'
 alias gvv8='col -b | gv -c "set tabstop=8 | retab" -'
 alias gvv4='col -b | gv -c "set tabstop=4 | retab" -'
+
 alias gvw='gv -R'
 alias gvd='gv -d'
 
@@ -303,45 +317,7 @@ compdef o=open
 alias o..='open ..'
 
 
-#export HOMEBREW_NO_AUTO_UPDATE=1
-#export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
-# https://docs.brew.sh/FAQ#how-can-i-keep-old-versions-of-a-formula-when-upgrading
-export HOMEBREW_NO_INSTALL_CLEANUP=1
-
-alias b=brew
-
-alias bi='brew info'
-alias bci='brew info --cask'
-alias bls='brew list'
-
-alias bs='brew search'
-alias bh='brew home'
-
-alias bin='brew install'
-alias bcin='brew install --cask'
-alias bui='brew uninstall'
-alias bcui='brew uninstall --cask'
-alias bri='brew reinstall'
-alias bcri='brew reinstall --cask'
-
-
-upMyBrew() {
-(
-    unset HOMEBREW_NO_AUTO_UPDATE
-    unset HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK
-
-    #logAndRun brew unlink homebrew/cask/macvim &&
-    pp logAndRun brew update &&
-    logAndRun brew upgrade vim &&
-    logAndRun brew unlink vim &&
-    logAndRun brew upgrade homebrew/cask/macvim &&
-    logAndRun brew link --overwrite vim &&
-    logAndRun brew upgrade
-    # && pp brew upgrade $(brew ls --cask) &&
-)
-}
-
-upMyConfGitRepo() {
+upMyGitRepo() {
     # update config git repo
     #
     # ~/.config/lvim is contained in ~/.config
@@ -359,7 +335,15 @@ upMyConfGitRepo() {
 ### zsh/oh-my-zsh redefinition ###
 
 # improve alias d of oh-my-zsh: colorful lines, near index number and dir name(more convenient for human eyes)
-alias d="dirs -v | head | sed 's/\t/ <=> /' | coat"
+d() {
+    if [[ -n $1 ]]
+    then
+        dirs "$@"
+    else
+        # dirs -v | sed 's/\t/ <=> /' | taoc
+        dirs -v | awk -F'\\t' '{printf "%2s <=> %s\n", $1, $2}' | taoc
+    fi
+}
 
 ### tools ###
 
@@ -425,51 +409,75 @@ lstcp() {
 #   -n inhibits the conversion of network numbers to host names
 alias tcplisten='lstcp LISTEN'
 
-
 alias pc='proxychains4 -q'
 pp() {
     if [ -n "${SKIP_PP+defined}" ]; then
-        echoInteractiveInfo "run without proxy: $*"
+        interactiveInfo "run without proxy: $*"
         "$@"
         return
     fi
 
-    local port
-    [ "$1" = "-p" ] && {
-        port=$2
-        shift 2
-    }
-
-    if [ -z "$port" ]; then
-        local -r proxy_ports=(7070)
-
-        for port in $proxy_ports; do
-            isTcpPortListening $port && break
-        done
+    local port=7070 proxy_type=sock5
+    while true; do
+        case "$1" in
+        -p)
+            port="$2"
+            shift 2
+            ;;
+        -h)
+            proxy_type=http
+            shift
+            ;;
+        *)
+            break
+            ;;
+        esac
+    done
+    if ! isTcpPortListening "$port"; then
+        errorEcho "proxy ports is not opened: $port"
+        return 1
+    fi
+    local -r force_http_proxy_type_commands=(sdk brew http curl)
+    # How do I check whether a zsh array contains a given value?
+    # https://unix.stackexchange.com/questions/411304
+    if (($force_http_proxy_type_commands[(Ie)$1])); then
+        proxy_type=http
+        ((port == 7050)) && port=7080
     fi
 
-    [ -n "$port" ] || {
-        errorEcho "proxy ports is not opened: $proxy_ports"
-        return 1
-    }
-
-    echoInteractiveInfo "use proxy port $port: $*"
+    interactiveInfo "use $proxy_type proxy on port $port: $*"
     (
-        export https_proxy=http://127.0.0.1:$port
-        export http_proxy=http://127.0.0.1:$port
-        export ftp_proxy="$https_proxy"
+        # How to use socks proxy for commands in Terminal?
+        # https://unix.stackexchange.com/questions/71481
+        export https_proxy="$proxy_type://127.0.0.1:$port"
+        export http_proxy=$https_proxy
+        export ftp_proxy=$https_proxy
         export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-DproxySet=true -DsocksProxyHost=127.0.0.1 -DsocksProxyPort=$port"
         "$@"
     )
 }
 compdef pp=time
+alias pph='pp -h'
+alias ppm='pp -p 7050'
+alias ppmh='pp -p 7080 -h'
 
 ### markdown ###
 
 # adjust indent for space 4
 toc () {
-  command doctoc --notitle "$@" &&
-    sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@"
+    local t2=false
+    if [ $1 = -t2 ]; then
+        t2=true
+        shift
+    fi
+
+    local adjust_indentation_cmds=(sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@")
+
+    if $t2; then
+        command doctoc --notitle "$@"
+    else
+        command doctoc --notitle "$@" && "${adjust_indentation_cmds[@]}"
+    fi
 }
 
 badges() {
@@ -503,6 +511,7 @@ compdef capw=type
 
 alias cq='c -q'
 compdef coat=cat
+compdef taoc=tac
 alias awl=a2l
 
 coatOneScreen() {
@@ -532,6 +541,9 @@ tailOneScreen() {
 tailOneScreen() {
     tail -n $((LINES - 5))
 }
+
+
+alias ansi2txt='sed -r "s/\x1B\[[0-9;]*[mK]//g"'
 
 alias vzshrc='v ~/.zshrc'
 

@@ -11,7 +11,9 @@ alias gD='logAndRun git diff'
 alias gdc='gd --cached'
 alias gDc='gD --cached'
 alias gdh='gd HEAD'
+alias gdhs='gd --stat HEAD'
 alias gDh='gD HEAD'
+alias gDhs='gD --stat HEAD'
 alias gdbc='git difftool --tool=bc4 -y'
 alias gdbch='git difftool --tool=bc4 -y HEAD --'
 alias gdi='git difftool --tool=idea -y --'
@@ -19,6 +21,8 @@ alias gdih='git difftool --tool=idea -y HEAD --'
 
 alias gdorigin='gd origin/$(git_current_branch)'
 alias gDorigin='gD origin/$(git_current_branch)'
+alias gdhorigin='gd HEAD origin/$(git_current_branch)'
+alias gDhorigin='gD HEAD origin/$(git_current_branch)'
 
 function gdl() {
     local from to
@@ -97,11 +101,10 @@ gg() {
 }
 compdef _git gg=git-log
 
-alias gg3='glog -3'
-alias gg5='glog -5'
-
 alias ggg='glgg -4'
-alias gggg='glgg -6'
+alias GG='glgg -4'
+alias gggg='glgg -7'
+alias GGG='glgg -7'
 
 
 ## git branch
@@ -145,6 +148,10 @@ gbtr() {
     __gb_sc $force_color_option -r "$@" | hint_git_simple_branch_name -v IS_REMOTE_MODE=1
 }
 
+gbtl() {
+    [ -t 1 ] && local force_color_option=--color
+    __gb_sc $force_color_option "$@" | hint_git_simple_branch_name
+}
 
 # How to list branches that contain a given commit?
 # http://stackoverflow.com/questions/1419623
@@ -301,7 +308,7 @@ __gitUrl_Http2Git() {
     local git_user="${1:-git}"
     echo "$url" | sed -r '
         s#^https?://#'"$git_user"'@#
-        s#(\.com|\.org)/#\1:#
+        s#(\.com|\.org|\.net)/#\1:#
         s#/$##
         s#(\.git)?$#\.git#
     '
@@ -310,7 +317,7 @@ __gitUrl_Http2Git() {
 __gitUrl_Git2Http() {
     echo "$url" | sed -r '
         s#^\w*@#https://#
-        s#(\.com|\.org):#\1/#
+        s#(\.com|\.org|\.net|\.io):#\1/#
         s#(\.wiki)?\.git$##
     '
 }
@@ -355,7 +362,16 @@ shgr() {
 }
 
 # change git repo address of http protocol to git protocol recursively
+
 chgr() {
+    [ $# -eq 0 ] && local -a files=(.) || local -a files=("$@")
+    local d
+    for d in "${files[@]}"; do
+        (cd "$d" && __chgr)
+    done
+}
+
+__chgr() {
     local d
     for d in `find -maxdepth 6 -iname .git`; do
         (
@@ -422,17 +438,34 @@ gclb() {
         shift
     }
 
-    local url
+    local -a failedUrls=()
+    local url git_url target_dir_name
     for url in "$@"; do
         if ! [[ $url =~ '\.git$' ]]; then
-            url="$url.git"
+            git_url="$url.git"
         fi
         if $force_git && [[ "$url" =~ '^http' ]]; then
-            url=$(__gitUrl_Http2Git "$git_user")
+            git_url=$(__gitUrl_Http2Git "$git_user")
         fi
 
-        logAndRun git clone "$url"
+        target_dir_name=$(echo $git_url | sed 's/\.git$//' | awk -F/ '{print $(NF)}')
+        if [ -d "$target_dir_name" ]; then
+            interactiveInfo "SKIP $url"
+            continue
+        fi
+
+        logAndRun git clone "$git_url" || failedUrls=( "${failedUrls[@]}" "$url")
     done
+
+    if [ "${#failedUrls[@]}" -gt 0 ]; then
+        echo
+        echo
+        errorEcho "Failed dirs:"
+        local idx=0
+        for url in "${failedUrls[@]}"; do
+            printf '%4s: %s\n' $((++idx)) "$url"
+        done
+    fi
 }
 
 alias glabclb='gclb -u gitlab -fg'
@@ -485,7 +518,7 @@ gut() {
 # git up recursively
 # Usage: gur [<dir1>  [<dir2> ...]]
 gur() {
-    echoInteractiveInfo "run: gur $*"
+    interactiveInfo "run: gur $*"
 
     local maxdepth=6
     if [ "$1" = "-d" ]; then
@@ -529,7 +562,7 @@ gur() {
         errorEcho "Failed dirs:"
         local idx=0
         for d in "${failedDirs[@]}"; do
-            echo "    $((++idx)): $d"
+            printf '%4s: %s\n' $((++idx)) "$d"
         done
     fi
 }
@@ -543,7 +576,7 @@ gpc() {
     done
 }
 
-gpfc() {
+gpcf() {
     [ $# != 1 ] && {
         echo "only 1 argument, but $@"
         return 1

@@ -71,5 +71,7 @@ alias cln='__jb_ide CLion'
 alias gld='__jb_ide Goland'
 alias rdr='__jb_ide Rider'
 
+alias dts='__jb_ide DataSpell'
 alias dtg='__jb_ide datagrip'
-alias mps='__jb_ide MPS'
+
+# alias mps='__jb_ide MPS'
