@@ -4,7 +4,7 @@
 
 # Disable CTRL-D from closing my window with the terminator terminal emulator)
 #   https://unix.stackexchange.com/a/139121/136953
-(( $SHLVL == 1 )) && set -o ignoreeof
+(( SHLVL == 1 )) && set -o ignoreeof
 
 export LANG=en_US.UTF-8
 export LC_CTYPE=UTF-8
@@ -29,7 +29,7 @@ setopt hist_ignore_space
 # https://superuser.com/questions/519596/share-history-in-multiple-zsh-shell
 # To save every command before it is executed (this is different from bash's history -a solution):
 setopt inc_append_history
-#To retrieve the history file everytime history is called upon.
+# To retrieve the history file everytime history is called upon.
 setopt share_history
 
 # append brew man
@@ -166,23 +166,6 @@ alias fdd='fd --type d'
 alias tzst='tar --use-compress-program zstd -cvf'
 
 
-# mdfind - Disable debug output: [UserQueryParser] Loading keywords and predicates for locale
-# https://developer.apple.com/forums/thread/728927
-mdfind() {
-    command mdfind "$@" 2> >(
-        rg --line-buffered -Fv ' [UserQueryParser] Loading keywords and predicates for locale ' >&2
-    )
-}
-
-# MdFind Directories
-mfd() {
-    local f
-    mdfind -name "$@" | while IFS= read -r f; do
-        [ -d "$f" ] && printf '%s\n' "$f"
-    done | sort
-}
-compdef mfd=mdfind
-
 # Remove duplicate entries in a file without sorting
 # http://www.commandlinefu.com/commands/view/4389
 # alias uq="awk '!x[\$0]++'"
@@ -244,25 +227,25 @@ alias lvw='lv -R'
 alias lvd='lv -d'
 
 
-#alias gv=gvim
-gv() {
-    gvim "$@"
-    return
-
-    local im=$(xkbswitch -g)
-
-    if [ $im != 0 ]; then
-        xkbswitch -s 0
-        sleep 0.1
-    fi
-
-    gvim "$@"
-
-    if [ $im != 0 ]; then
-        sleep 0.1
-        xkbswitch -s $im
-    fi
-}
+alias gv=gvim
+#gv() {
+#    gvim "$@"
+#    return
+#
+#    local im=$(xkbswitch -g)
+#
+#    if [ $im != 0 ]; then
+#        xkbswitch -s 0
+#        sleep 0.1
+#    fi
+#
+#    gvim "$@"
+#
+#    if [ $im != 0 ]; then
+#        sleep 0.1
+#        xkbswitch -s $im
+#    fi
+#}
 alias gv8='gv -c "set tabstop=8"'
 alias gv4='gv -c "set tabstop=4"'
 
@@ -437,7 +420,7 @@ pp() {
         errorEcho "proxy ports is not opened: $port"
         return 1
     fi
-    local -r force_http_proxy_type_commands=(sdk brew http curl)
+    local -r force_http_proxy_type_commands=(sdk brew http curl rustup)
     # How do I check whether a zsh array contains a given value?
     # https://unix.stackexchange.com/questions/411304
     if (($force_http_proxy_type_commands[(Ie)$1])); then
@@ -450,8 +433,8 @@ pp() {
         # How to use socks proxy for commands in Terminal?
         # https://unix.stackexchange.com/questions/71481
         export https_proxy="$proxy_type://127.0.0.1:$port"
-        export http_proxy=$https_proxy
-        export ftp_proxy=$https_proxy
+        export http_proxy="$https_proxy"
+        export ftp_proxy="$https_proxy"
         export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-DproxySet=true -DsocksProxyHost=127.0.0.1 -DsocksProxyPort=$port"
         "$@"
     )
@@ -543,7 +526,7 @@ tailOneScreen() {
 }
 
 
-alias ansi2txt='sed -r "s/\x1B\[[0-9;]*[mK]//g"'
+alias ansirm='sed -r "s/\x1B\[[0-9;]*[mK]//g"'
 
 alias vzshrc='v ~/.zshrc'
 

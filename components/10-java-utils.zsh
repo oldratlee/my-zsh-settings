@@ -485,7 +485,7 @@ alias grwdr='grw -q dependencies --configuration runtime'
 alias grwdtc='grw -q dependencies --configuration testCompile'
 
 gwrapper() {
-    command gradle wrapper --distribution-type=all --gradle-version "${1:-4.10.3}"
+    logAndRun command gradle wrapper --distribution-type=all --gradle-version "${1:-4.10.3}"
 }
 
 # kill all gradle deamon processes on mac

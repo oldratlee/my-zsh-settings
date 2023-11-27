@@ -1,6 +1,8 @@
 # macOS 10.15 Catalina xxx.app已损坏，无法打开，你应该将它移到废纸篓解决方法
 # https://www.macwk.com/article/mac-catalina-1015-file-damage
 
+[[ "$(uname)" = Darwin* ]] || return 0
+
 disableAppSecurity() {
     sudo spctl --master-disable
 
@@ -24,16 +26,38 @@ enableAppSecurity() {
 alias ResetAccessibility='sudo tccutil reset Accessibility'
 
 
+# mdfind - Disable debug output: [UserQueryParser] Loading keywords and predicates for locale
+# https://developer.apple.com/forums/thread/728927
+mdfind() {
+    command mdfind "$@" 2> >(
+        rg --line-buffered -Fv ' [UserQueryParser] Loading keywords and predicates for locale ' >&2
+    )
+}
+
+# MdFind Directories
+mfd() {
+    local f
+    mdfind -name "$@" | while IFS= read -r f; do
+        [ -d "$f" ] && printf '%s\n' "$f"
+    done | sort
+}
+compdef mfd=mdfind
+
 
 ###############################################################################
 # Brew
 ###############################################################################
 
-# man with brew
-mb() { (
-    export MANPATH="$(echo /usr/local/opt/*/share/man | tr ' ' :):$MANPATH"
-    man "$@"
-) }
+# help/man within brew
+hb() {
+    [ -z "$__hb_man_path_" ] && __hb_man_path_=$(echo /usr/local/opt/*/share/man | tr ' ' :)
+    (
+        export MANPATH="$__hb_man_path_:$MANPATH"
+        run-help "$@"
+        # man "$@"
+    )
+}
+compdef hb=run-help
 
 
 # Ubuntu’s command-not-found equivalent for Homebrew on macOS

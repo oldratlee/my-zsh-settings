@@ -19,6 +19,8 @@ alias gocbv='go clean && go build -x -v'
 
 [ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
 
+# https://mirrors.tuna.tsinghua.edu.cn/help/rustup/
+export RUSTUP_DIST_SERVER="https://mirrors.tuna.tsinghua.edu.cn/rustup"
 
 ###############################################################################
 # CPP
