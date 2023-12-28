@@ -98,6 +98,12 @@ alias bcui='brew uninstall --cask'
 alias bri='brew reinstall'
 alias bcri='brew reinstall --cask'
 
+# Brew CleanUp
+bclu() {
+    logAndRun brew cleanup
+    (cd "$(brew --cache)" && logAndRun rm -rf downloads Cask *-*(N))
+}
+
 
 upMyBrew() {
     local fast_mode=false

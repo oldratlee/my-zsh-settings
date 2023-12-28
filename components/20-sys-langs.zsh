@@ -22,6 +22,17 @@ alias gocbv='go clean && go build -x -v'
 # https://mirrors.tuna.tsinghua.edu.cn/help/rustup/
 export RUSTUP_DIST_SERVER="https://mirrors.tuna.tsinghua.edu.cn/rustup"
 
+
+###############################################################################
+# Zig
+###############################################################################
+
+alias z=zig
+alias zb='zig build'
+alias zbr='zig build run'
+alias zbt='zig build test'
+
+
 ###############################################################################
 # CPP
 ###############################################################################
@@ -31,6 +42,8 @@ export RUSTUP_DIST_SERVER="https://mirrors.tuna.tsinghua.edu.cn/rustup"
 ##################################################
 
 export VCPKG_ROOT="$HOME/.vcpkg"
+
+source "$VCPKG_ROOT/scripts/vcpkg_completion.zsh"
 
 alias vp='vcpkg'
 alias vps='vcpkg search'

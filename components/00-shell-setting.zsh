@@ -8,7 +8,8 @@
 
 export LANG=en_US.UTF-8
 export LC_CTYPE=UTF-8
-export EDITOR=vim
+# export EDITOR=vim
+export EDITOR=lvim
 
 # iTerm2 supports true colors, however, there's no official way of advertising this feature.
 #   https://gitlab.com/gnachman/iterm2/-/issues/5294
@@ -41,6 +42,7 @@ setopt share_history
 # https://superuser.com/questions/1563825
 alias help=run-help
 alias h=run-help
+alias a=apropos
 
 export PATH="$HOME/.local/bin:$HOME/bin:$HOME/bin/useful-scripts/bin:$PATH"
 # Calibre utils, brew texinfo
@@ -59,6 +61,8 @@ which gdircolors &> /dev/null && {
     eval `gdircolors -b <(gdircolors --print-database)`
 }
 
+alias cdp='cd -P'
+
 # how to make ctrl+p behave exactly like up arrow in zsh?
 # http://superuser.com/questions/583583
 #bindkey '^P' up-line-or-search
@@ -74,7 +78,7 @@ done
 
 ### core utils ###
 
-export LESS="${LESS}iXF"
+export LESS="-RiXF"
 alias lev='LESS=-Ri less'
 
 pt() {
@@ -111,9 +115,13 @@ if which lsd &> /dev/null; then
 fi
 
 alias ll='ls -lh'
+unalias lsa
+alias lsa='ls -a'
 
 alias lld='ll -d'
 alias lsd='ls -d'
+alias lldf='ll --group-directories-first'
+alias lsdf='ls --group-directories-first'
 
 alias lsr='ls -r'
 alias llr='ll -r'
@@ -134,6 +142,7 @@ alias llc='command ls --color=auto -l -t --time=creation -r'
 alias lsx='ls --group-directories-first -X'
 alias llx='ll --group-directories-first -X'
 
+alias ltr='ls --tree'
 
 alias rr=ranger
 
@@ -172,12 +181,12 @@ alias tzst='tar --use-compress-program zstd -cvf'
 
 # show type -a and which -a info together, very convenient!
 ta() {
-    warnEcho "type -a:"
+    infoEcho "type -a:"
     # type buildin command can output which file the function is definded. COOL!
     type -a "$@"
 
     echo
-    warnEcho "which -a:"
+    infoEcho "which -a:"
     # which buildin command can output the function implementation. COOL!
     which -a "$@"
 }
@@ -342,6 +351,7 @@ tca() {
 }
 
 alias scc='scc -s Code'
+alias rt='trash -F'
 alias ts='trash -F'
 
 # speed up download
@@ -395,7 +405,7 @@ alias tcplisten='lstcp LISTEN'
 alias pc='proxychains4 -q'
 pp() {
     if [ -n "${SKIP_PP+defined}" ]; then
-        interactiveInfo "run without proxy: $*"
+        infoInteractive "run without proxy: $*"
         "$@"
         return
     fi
@@ -420,7 +430,7 @@ pp() {
         errorEcho "proxy ports is not opened: $port"
         return 1
     fi
-    local -r force_http_proxy_type_commands=(sdk brew http curl rustup)
+    local -r force_http_proxy_type_commands=(brew http curl wget sdk sbt rustup gh git git-up)
     # How do I check whether a zsh array contains a given value?
     # https://unix.stackexchange.com/questions/411304
     if (($force_http_proxy_type_commands[(Ie)$1])); then
@@ -428,13 +438,15 @@ pp() {
         ((port == 7050)) && port=7080
     fi
 
-    interactiveInfo "use $proxy_type proxy on port $port: $*"
+    infoInteractive "use $proxy_type proxy on port $port: $*"
     (
         # How to use socks proxy for commands in Terminal?
-        # https://unix.stackexchange.com/questions/71481
+        #   https://unix.stackexchange.com/questions/71481
+        # Are HTTP_PROXY, HTTPS_PROXY and NO_PROXY environment variables standard?
+        #   https://superuser.com/questions/944958
         export https_proxy="$proxy_type://127.0.0.1:$port"
-        export http_proxy="$https_proxy"
-        export ftp_proxy="$https_proxy"
+        export http_proxy="$https_proxy" ftp_proxy="$https_proxy" all_proxy="$https_proxy"
+        export HTTPS_PROXY="$https_proxy" HTTP_PROXY="$https_proxy" FTP_PROXY="$https_proxy" ALL_PROXY="$https_proxy"
         export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-DproxySet=true -DsocksProxyHost=127.0.0.1 -DsocksProxyPort=$port"
         "$@"
     )
@@ -443,19 +455,21 @@ compdef pp=time
 alias pph='pp -h'
 alias ppm='pp -p 7050'
 alias ppmh='pp -p 7080 -h'
+compdef pph=time
+compdef ppm=time
+compdef ppmh=time
 
 ### markdown ###
 
 # adjust indent for space 4
 toc () {
     local t2=false
-    if [ $1 = -t2 ]; then
+    if [ "$1" = -t2 ]; then
         t2=true
         shift
     fi
 
-    local adjust_indentation_cmds=(sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@")
-
+    local -a adjust_indentation_cmds=(sed '/<!-- START doctoc generated TOC/,/<!-- END doctoc generated TOC/s/^( +)/\1\1/' -ri "$@")
     if $t2; then
         command doctoc --notitle "$@"
     else
@@ -483,14 +497,14 @@ alias otv=octave-cli
 
 alias cap='c ap'
 
-# print and copy full path of command bin
-capw() {
+# print command Bin Path on env $PATH
+bp() {
     local arg
     for arg; do
-        ap "$(whence -p "$arg")"
-    done | c
+        whence -p "$arg"
+    done
 }
-compdef capw=type
+compdef bp=type
 
 alias cq='c -q'
 compdef coat=cat
@@ -532,21 +546,52 @@ alias vzshrc='v ~/.zshrc'
 
 # ReStart SHell
 rsh() {
-    # just rerun zsh
-    exec "$SHELL" -li
+    exec env "$SHELL" -li
 
-    # How to reset a shell environment? https://unix.stackexchange.com/questions/14885
-    exec env -i \
-        TERM=$TERM TERM_PROGRAM=$TERM_PROGRAM TERM_PROGRAM_VERSION=$TERM_PROGRAM_VERSION TERM_SESSION_ID=$TERM_SESSION_ID \
-        ITERM_PROFILE=$ITERM_PROFILE ITERM_SESSION_ID=$ITERM_SESSION_ID \
-        TMUX=$TMUX TMUX_PANE=$TMUX_PANE \
-        XPC_FLAGS=$XPC_FLAGS XPC_SERVICE_NAME=$XPC_SERVICE_NAME \
-        __CF_USER_TEXT_ENCODING=$__CF_USER_TEXT_ENCODING \
-        Apple_PubSub_Socket_Render=$Apple_PubSub_Socket_Render \
-        SSH_AUTH_SOCK=$SSH_AUTH_SOCK \
-        USER=$USER LOGNAME=$LOGNAME SHELL=$SHELL \
-        TMPDIR=$TMPDIR DISPLAY=$DISPLAY COLORFGBG=$COLORFGBG \
-        "$@" \
-        zsh --login -i
+    local -a inherit_env_var_names=(
+        #Apple_PubSub_Socket_Render
+        COLORFGBG
+        COLORTERM
+        COMMAND_MODE
+        DISPLAY
+        ITERM_PROFILE
+        ITERM_SESSION_ID
+        LC_TERMINAL
+        LC_TERMINAL_VERSION
+        LOGNAME
+        SECURITYSESSIONID
+        #SHELL
+        SSH_AUTH_SOCK
+        TERM
+        TERM_PROGRAM
+        TERM_PROGRAM_VERSION
+        TERM_SESSION_ID
+        TMPDIR
+        TMUX
+        TMUX_CONF
+        TMUX_CONF_LOCAL
+        TMUX_PANE
+        TMUX_PLUGIN_MANAGER_PATH
+        TMUX_PROGRAM
+        TMUX_SOCKET
+        USER
+        XPC_FLAGS
+        XPC_SERVICE_NAME
+        __CFBundleIdentifier
+        __CF_USER_TEXT_ENCODING
+    )
+
+    local export_vars=() v assign
+    for v in "${inherit_env_var_names[@]}"; do
+        [ -n "${(P)v}" ] || continue
+        printf -v assign "%q=%q" "$v" "${(P)v}"
+        export_vars+="$assign"
+    done
+
+    # How to reset a shell environment?
+    #   https://unix.stackexchange.com/questions/14885
+    #
+    # exec env -i "$SHELL" -li
+    exec env -i "${export_vars[@]}" zsh -li
 }
 

@@ -8,14 +8,14 @@ unalias ipython
 alias ipy='ipython --matplotlib --pylab'
 alias bpy=bpython
 
-alias nb='LANGUAGE="" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-notebook'
-alias lab='LANGUAGE="" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-lab'
+alias nb='LANGUAGE= LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-notebook'
+alias lab='LANGUAGE= LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-lab'
 
 alias pyenv='"${PY:-python3}" -m venv'
 
 unalias pip
 pip() {
-    [ -n "${PY:-}" ] && interactiveInfo "use \$PY: $PY"
+    [ -z "${PY:-}" ] || infoInteractive "use \$PY: $PY"
     "${PY:-python3}" -m pip "$@"
 }
 pip3() {
@@ -105,7 +105,7 @@ pvc() {
         esac
     done
 
-    [ -n "${PY:-}" ] && interactiveInfo "use \$PY: $PY"
+    [ -n "${PY:-}" ] && infoInteractive "use \$PY: $PY"
     local python="${PY:-python3}"
     if command -v "$python" &> /dev/null; then
         python=$(command -v "$python")
@@ -160,7 +160,7 @@ pva() {
 
         local activate_bin_dir=$(dirname "$activate_file")
         [[ -f "$activate_bin_dir/python" && -f "$activate_bin_dir/pip" ]] || {
-            interactiveError "find $activate_file, but without related python or pip file, IGNORED!"
+            errorInteractive "find $activate_file, but without related python or pip file, IGNORED!"
             continue
         }
 
@@ -377,4 +377,4 @@ alias schm='rlwrap -p 1\;32 -r -c -f $HOME/.scheme_completion.rlwrap scheme'
 
 alias sp='swipl'
 alias gpl='gprolog'
-alias bp='$HOME/Applications/BProlog/bp'
+# alias bp='$HOME/Applications/BProlog/bp'

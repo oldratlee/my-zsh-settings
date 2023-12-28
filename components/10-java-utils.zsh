@@ -2,11 +2,19 @@
 # Java/JVM Languages
 ###############################################################################
 
+alias java='java -Duser.language=en_US'
+alias javac='javac -J-Duser.language=en_US'
+
+alias jstack='jstack -J-Duser.language=en_US'
+alias jstat='jstat -J-Duser.language=en_US'
+
+alias jcmd='jcmd -J-Duser.language=en_US'
+alias jshell='jshell -J-Duser.language=en_US'
+
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-
 
 __getLatestJavaHomeForVersion() {
     local version="$1"
@@ -53,6 +61,16 @@ setjh(){
     fi
     PATH="$JAVA_HOME/bin:$PATH"
     export PATH=${PATH//::/:}
+
+    # export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Duser.language=en -Duser.country=US -Xverify:none"
+    local ver major_ver
+    ver="$("$JAVA_HOME/bin/java" -version 2>&1 | awk -F\" 'NR==1{print $2}')"
+    major_ver=${ver%%.*}
+    if ((major_ver < 13)); then
+        export JAVA_OPTS='-Duser.language=en -Duser.country=US -Xverify:none'
+    else
+        export JAVA_OPTS='-Duser.language=en -Duser.country=US'
+    fi
 }
 
 alias cdjh='cd $JAVA_HOME'
@@ -60,36 +78,38 @@ alias cdjh='cd $JAVA_HOME'
 export_java_env_vars() {
     #export JAVA_HOME=$(/usr/libexec/java_home -v 1.6)
     #export JAVA6_HOME='/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home'
-    local jv_version jv_home
+    local jv_version jv_home expr
     for jv_version in 6 8 11 17 19 {20..25}; do
         jv_home=$(__getLatestJavaHomeForVersion $jv_version)
         if [ -z "$jv_home" ]; then
             unset JAVA${jv_version}_HOME JAVA${jv_version}HOME
             unset JDK${jv_version}_HOME JDK_${jv_version}
-
-            unalias j${jv_version} 2>/dev/null || true
-
+            unalias j${jv_version} 2>/dev/null
             continue
         fi
 
         # export JAVAn_HOME, JAVAnHOME, like JAVA8_HOME, JAVA8HOME
-        eval export JAVA${jv_version}_HOME="'$jv_home'"
-        eval export JAVA${jv_version}HOME="'$jv_home'"
+        printf -v expr '%q=%q' "JAVA${jv_version}_HOME" "$jv_home"
+        export "$expr"
+        printf -v expr '%q=%q' "JAVA${jv_version}HOME" "$jv_home"
+        export "$expr"
 
         # export JDKn_HOME, JDK_n, like JDK8_HOME, JDK_8
-        eval export JDK${jv_version}_HOME="'$jv_home'"
-        eval export JDK_${jv_version}="'$jv_home'"
+        printf -v expr '%q=%q' "JDK${jv_version}_HOME" "$jv_home"
+        export "$expr"
+        printf -v expr '%q=%q' "JDK_${jv_version}" "$jv_home"
+        export "$expr"
 
         # add JAVA_HOME switcher jn, like j9, j16
-        eval alias j${jv_version}="'setjh \"\$JAVA${jv_version}_HOME\"'"
+        printf -v expr '%q=setjh "$%q"' "j${jv_version}" "JAVA${jv_version}_HOME"
+        alias "$expr"
     done
 
     # default JAVA_HOME
     export JAVA0_HOME="$SDKMAN_CANDIDATES_DIR/java/current"
     alias j0='setjh "$JAVA0_HOME"'
+    setjh "$JAVA0_HOME"
 
-    # export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Duser.language=en -Duser.country=US -Xverify:none"
-    export JAVA_OPTS="-Duser.language=en -Duser.country=US -Xverify:none"
     export MANPATH="$JAVA_HOME/man:$MANPATH"
 }
 export_java_env_vars
@@ -103,7 +123,7 @@ showJavaInfos() {
     logAndRun type -a java
     logAndRun which -a java
     echo
-    interactiveInfo "\$JAVA_HOME:"
+    infoInteractive "\$JAVA_HOME:"
     echo "$JAVA_HOME\nAbsulate path:\n$(ap "$JAVA_HOME")"
     echo
     logAndRun java -version
@@ -232,15 +252,15 @@ function mvn() {
 
     if [ "${USE_M2+defined}" ]; then
         local M2_BIN="$SDKMAN_CANDIDATES_DIR/maven/2.2.1/bin/mvn"
-        interactiveInfo "use maven 2: $M2_BIN"
+        infoInteractive "use maven 2: $M2_BIN"
 
         logAndRun "$M2_BIN" ${MVN_REPO_LOCAL:+"-Dmaven.repo.local=$MVN_REPO_LOCAL"} "$@"
     elif [ -n "${USE_MVND+defined}" ]; then
-        interactiveInfo "use mvnd: $(which mvnd)"
+        infoInteractive "use mvnd: $(which mvnd)"
 
         logAndRun mvnd "${args[@]}"
     else
-        findLocalBinOrDefaultToRun mvnw "$HOME/.sdkman/candidates/maven/current/bin/mvn" "${args[@]}"
+        findLocalBinOrDefaultToRun mvnw mvn "${args[@]}"
     fi
 }
 
@@ -289,7 +309,7 @@ mmdt() {(
     logAndRun mdt -B "$@" | tee mdt-origin.log
 
     echo
-    interactiveInfo "tidy result: "
+    infoInteractive "tidy result: "
     echo
     command grep '(\+-|\\-).*:.*:|\bBuilding\b|(^\[INFO\] -----------+\[)' --line-buffered -E |
         sed -r 's/^\[\w*\] //' mdt-origin.log | tee mdt.log |
@@ -304,7 +324,7 @@ mmda() {
     logAndRun mda -B "$@" | tee mda-origin.log
 
     echo
-    interactiveInfo "tidy result: "
+    infoInteractive "tidy result: "
     echo
     command sed -r -n '
             /\bBuilding\b|^\[ERROR\] /p
@@ -322,14 +342,15 @@ alias mdct='__mdep copy-dependencies -DincludeScope=test'
 
 # Check dependencies update
 mcv() {
-    local g goals=() versions_maven_plugin_version=2.16.0
+    local g goals=() versions_maven_plugin_version=2.16.2
     for g in display-dependency-updates display-plugin-updates display-property-updates; do
         goals+="org.codehaus.mojo:versions-maven-plugin:$versions_maven_plugin_version:$g"
     done
 
     local ignore_version_option ignore_versions=(
-        '.*-[Aa]lpha([-.]?\d+)?'
-        '.*-[Bb]eta([-.]?\d+)?'
+        # netty 5.0.0.Alpha2
+        '.*[-.][Aa]lpha([-.]?\d+)?'
+        '.*[-.][Bb]eta([-.]?\d+)?'
         # '(?i).*-rc(-?\d+(-.*)?)?'
         '(?i).*-rc(-?\d+)?'
 
@@ -349,13 +370,25 @@ mcv() {
     # https://www.mojohaus.org/versions/versions-maven-plugin/display-dependency-updates-mojo.html
     mvn "-Dmaven.version.ignore=$ignore_version_option" "${goals[@]}" "$@"
 }
-mmcv() {
-    mcv -B "$@" | tee mcv-origin.log
 
-    echo
-    interactiveInfo "tidy result: "
-    echo
-    command rg '\[INFO\].*->|\bBuilding\b|\[ERROR\]' mcv-origin.log | uq | tee mcv.log
+mmcv() {
+    local show_original=false
+    if [ "$1" = -O ]; then
+        show_original=true
+        shift
+    fi
+
+    mcv -B "$@" | if $show_original; then
+        tee mcv-origin.log
+
+        echo
+        infoInteractive "tidy result: "
+        echo
+    else
+        tee mcv-origin.log | printOneLineResponsive
+    fi
+
+    command rg '^\[INFO\].*->|^\[INFO\] Building\b|^\[INFO\] Require Maven |^\[ERROR\]|^\[WARNING\]' mcv-origin.log | tee mcv.log
     # command rg '\[(INFO|ERROR)\].*->' | sort -k4,4V -k2,2 -u | tee mcv.log
 }
 
@@ -393,7 +426,7 @@ mmcd() {
     mcd -B "$@" | tee mcd-origin.log
 
     echo
-    interactiveInfo "tidy result: "
+    infoInteractive "tidy result: "
     echo
     sed -n '
         /^\[WARNING\] Found duplicate /,/^\[INFO\] /p
@@ -420,10 +453,33 @@ mmd() {
 
 # maven artifact version
 mav() {
+    (($# == 1)) || {
+        errorEcho "need only one coordinate argment! but provided: $*"
+        return 1
+    }
+
     local coordinate="$1"
     coordinate="${coordinate//://}"
-    command http --follow "https://img.shields.io/maven-central/v/$coordinate.svg"  |
-        command rg '(?<="maven-central: v)[^"]+(?=")' -Po
+    coordinate="${coordinate//.//}"
+    command http "https://repo1.maven.org/maven2/$coordinate/maven-metadata.xml" |
+        awk -F'</?release>' '/<release>/{print $2}'
+    # coordinate="${coordinate//://}"
+    # command http --follow "https://img.shields.io/maven-central/v/$coordinate.svg"  |
+    #     command rg '(?<="maven-central: v)[^"]+(?=")' -Po
+}
+
+# maven artifact versions
+mavs() {
+    (($# == 1)) || {
+        errorEcho "need only one coordinate argment! but provided: $*"
+        return 1
+    }
+
+    local coordinate="$1"
+    coordinate="${coordinate//://}"
+    coordinate="${coordinate//.//}"
+    command http "https://repo1.maven.org/maven2/$coordinate/maven-metadata.xml" |
+        awk -F'</?version>' '/<version>/{print $2}'
 }
 
 # swith maven settings.xml
@@ -446,8 +502,8 @@ smMinOpen() {
 ###############################################################################
 
 function sbt() {
-    # auto use java on JAVA_HOME instead of PATH by --java-home option
-    findLocalBinOrDefaultToRun sbt sbt --java-home "$JAVA_HOME" "$@"
+    # auto use java on JAVA_HOME instead of PATH by -java-home option
+    findLocalBinOrDefaultToRun sbt sbt -java-home "$JAVA_HOME" "$@"
 }
 
 ###############################################################################
@@ -485,7 +541,22 @@ alias grwdr='grw -q dependencies --configuration runtime'
 alias grwdtc='grw -q dependencies --configuration testCompile'
 
 gwrapper() {
-    logAndRun command gradle wrapper --distribution-type=all --gradle-version "${1:-4.10.3}"
+    local ver="${1:-4}"
+    local major_ver="${ver%%.*}"
+    local -a gradle_args=(wrapper --distribution-type=all)
+    if ((major_ver == 2)); then
+        logAndRun "$SDKMAN_DIR/candidates/gradle/2.14.1/bin/gradle" wrapper
+    elif ((major_ver == 4)); then
+        logAndRun "$SDKMAN_DIR/candidates/gradle/4.10.3/bin/gradle" "${gradle_args[@]}"
+    elif ((major_ver > 4)); then
+        local gradle_installs=("$SDKMAN_DIR/candidates/gradle"/[0-9]*/bin/gradle)
+        local latest_ver
+        latest_ver=$(printf '%s\n' "${gradle_installs[@]}" | sort -V | tail -n 1)
+        logAndRun "$latest_ver" "${gradle_args[@]}"
+    else
+        errorInteractive "gradle version $ver NOT supported!"
+        return 1
+    fi
 }
 
 # kill all gradle deamon processes on mac

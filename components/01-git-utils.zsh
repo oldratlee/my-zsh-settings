@@ -3,6 +3,10 @@
 # Git
 ###############################################################################
 
+
+unalias gup &>/dev/null
+alias gup='git pull --rebase'
+
 # git diff
 
 alias gd='logAndRun git diff --ignore-cr-at-eol --ignore-space-at-eol --ignore-space-change --ignore-all-space --ignore-blank-lines'
@@ -450,7 +454,7 @@ gclb() {
 
         target_dir_name=$(echo $git_url | sed 's/\.git$//' | awk -F/ '{print $(NF)}')
         if [ -d "$target_dir_name" ]; then
-            interactiveInfo "SKIP $url"
+            infoInteractive "SKIP $url"
             continue
         fi
 
@@ -518,8 +522,6 @@ gut() {
 # git up recursively
 # Usage: gur [<dir1>  [<dir2> ...]]
 gur() {
-    interactiveInfo "run: gur $*"
-
     local maxdepth=6
     if [ "$1" = "-d" ]; then
         local maxdepth="$2"
@@ -546,10 +548,10 @@ gur() {
             $isFirst && isFirst=false || echo
 
             d="$(readlink -f "$(dirname $d)")"
-            warnEcho "$((++idx)): Update Git repo: $(basename "$d")"
+            infoEcho "$((++idx)): Update Git repo $(basename "$d"): $d"
             (
                 cd "$d" && {
-                    echo -e "\trepo path: $PWD\n\trepo url: $(git remote get-url origin)"
+                    printf  "repo url: $(git remote get-url origin)"
                     gut
                 }
             ) || failedDirs=( "${failedDirs[@]}" "$d")
