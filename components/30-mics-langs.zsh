@@ -145,11 +145,18 @@ pvc() {
 
 # Python Venv Activate
 pva() {
+    local quiet=false
+    if [[ $1 = -q ]]; then
+        quiet=true
+    fi
+
+    [ "$PWD" = "${VIRTUAL_ENV%/*venv*}" ] && return
+
     local d="$PWD/dummy"
     while true; do
         d=$(dirname "$d")
         [ "/" = "$d" ] && {
-            errorEcho "No python virtualenv found!"
+            $quiet || errorEcho "No python virtualenv found!"
             return 1
         }
 
@@ -164,13 +171,17 @@ pva() {
             continue
         }
 
+        infoInteractive "Activate python venv at dir $PWD"
         logAndRun source "$activate_file"
         return
     done
 }
 
 # Python Venv Deactivate
-alias pvd=deactivate
+pvd() {
+    infoInteractive 'Deactivate python venv'
+    logAndRun deactivate
+}
 
 # Python Virtaul Env
 pve() {
@@ -233,6 +244,12 @@ poreq() {
 pova() {
     source "$(poetry env info --path)/bin/activate"
 }
+
+
+pyuploadserver() {
+    "$HOME/.pypeotry/tools/uploadserver/bin/python3" -m uploadserver
+}
+
 
 ###############################################################################
 # R
@@ -335,12 +352,23 @@ alias nig='npm install -g'
 
 
 ###############################################################################
+# OCaml
+###############################################################################
+
+[[ ! -r "$HOME/.opam/opam-init/init.zsh" ]] || source "$HOME/.opam/opam-init/init.zsh"  &> /dev/null
+
+# cs3110 env installation
+#   https://zhuanlan.zhihu.com/p/452978437
+# OCaml env installation
+#   https://zhuanlan.zhihu.com/p/550727182
+
+
+###############################################################################
 # Erlang
 ###############################################################################
 
 alias rb2=rebar
 alias rb=rebar3
-
 
 erun() {
     if [ $# -lt 2 ]; then

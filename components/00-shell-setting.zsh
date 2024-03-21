@@ -78,6 +78,11 @@ done
 
 ### core utils ###
 
+# do NOT overwrite an existing file
+alias cp='cp -i'
+alias mv='mv -i'
+alias od='od -c -tx1 -tu1'
+
 export LESS="-RiXF"
 alias lev='LESS=-Ri less'
 
@@ -142,7 +147,40 @@ alias llc='command ls --color=auto -l -t --time=creation -r'
 alias lsx='ls --group-directories-first -X'
 alias llx='ll --group-directories-first -X'
 
-alias ltr='ls --tree'
+alias lt='ls --tree'
+alias ltl='ll --tree'
+
+# https://github.com/hyperupcall/autoenv
+AUTOENV_ENABLE_LEAVE=true
+AUTOENV_PRESERVE_CD=true
+
+__mzs_auto_env_chpwd_hook() {
+    [[ -z "$__mzs_in_auto_env_chpwd_hook" || $ZSH_SUBSHELL != 0 ]] || return
+    __mzs_in_auto_env_chpwd_hook=true
+
+    if [[ -n "$OLDPWD" && "$PWD" != "$OLDPWD" ]]; then
+        autoenv_init "$OLDPWD"
+    fi
+
+    unset __mzs_in_auto_env_chpwd_hook
+}
+typeset -f autoenv_init >/dev/null && add-zsh-hook chpwd __mzs_auto_env_chpwd_hook
+
+viewAutoEnvFiles() {
+    local d=$PWD
+    local view_files=()
+    while [ -n "$d" ]; do
+        [ -e "$d/$AUTOENV_ENV_FILENAME" ] && view_files+=$d/$AUTOENV_ENV_FILENAME
+        [ -e "$d/$AUTOENV_ENV_LEAVE_FILENAME" ] && view_files+=$d/$AUTOENV_ENV_LEAVE_FILENAME
+
+        d=${d%/*}
+    done
+    if ((${#view_files[@]} > 0)); then
+        bat -l zsh "${view_files[@]}"
+    else
+        infoInteractive "No autoenv files found."
+    fi
+}
 
 alias rr=ranger
 
@@ -181,14 +219,13 @@ alias tzst='tar --use-compress-program zstd -cvf'
 
 # show type -a and which -a info together, very convenient!
 ta() {
-    infoEcho "type -a:"
     # type buildin command can output which file the function is definded. COOL!
-    type -a "$@"
+    type -aS "$@" | coat
 
-    echo
-    infoEcho "which -a:"
+    local func_info
     # which buildin command can output the function implementation. COOL!
-    which -a "$@"
+    func_info=$(functions "$@")
+    [ -z "$func_info" ] || printf '\n%s\n' "$func_info" | rg '^\S*'
 }
 # Tab completion for aliased sub commands in zsh: alias gco='git checkout'
 # Reload auto completion
@@ -328,8 +365,7 @@ upMyGitRepo() {
 
 # improve alias d of oh-my-zsh: colorful lines, near index number and dir name(more convenient for human eyes)
 d() {
-    if [[ -n $1 ]]
-    then
+    if (($# > 1)); then
         dirs "$@"
     else
         # dirs -v | sed 's/\t/ <=> /' | taoc
@@ -350,7 +386,8 @@ tca() {
     fi
 }
 
-alias scc='scc -s Code'
+alias scc='scc -s Code --no-cocomo'
+alias sccf='scc --by-file'
 alias rt='trash -F'
 alias ts='trash -F'
 
@@ -430,7 +467,7 @@ pp() {
         errorEcho "proxy ports is not opened: $port"
         return 1
     fi
-    local -r force_http_proxy_type_commands=(brew http curl wget sdk sbt rustup gh git git-up)
+    local -r force_http_proxy_type_commands=(http curl wget brew sdk sbt rustup gh git git-up)
     # How do I check whether a zsh array contains a given value?
     # https://unix.stackexchange.com/questions/411304
     if (($force_http_proxy_type_commands[(Ie)$1])); then
@@ -448,7 +485,9 @@ pp() {
         export http_proxy="$https_proxy" ftp_proxy="$https_proxy" all_proxy="$https_proxy"
         export HTTPS_PROXY="$https_proxy" HTTP_PROXY="$https_proxy" FTP_PROXY="$https_proxy" ALL_PROXY="$https_proxy"
         export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-DproxySet=true -DsocksProxyHost=127.0.0.1 -DsocksProxyPort=$port"
-        "$@"
+        # use quoted command for eval, so can call alias
+        printf -v quoted_command_for_eval '%q ' "$@"
+        eval $quoted_command_for_eval
     )
 }
 compdef pp=time
@@ -513,7 +552,7 @@ alias awl=a2l
 
 coatOneScreen() {
     if [ -t 1 ]; then
-        head -n $((LINES - 5)) | coat "$@"
+        head -n $((LINES - 5 >= 3 ? LINES - 5 : LINES)) | coat "$@"
     else
         cat "$@"
     fi
@@ -546,7 +585,17 @@ alias vzshrc='v ~/.zshrc'
 
 # ReStart SHell
 rsh() {
-    exec env "$SHELL" -li
+    local -a unset_env_var_names=(
+        VIRTUAL_ENV
+        VIRTUAL_ENV_PROMPT
+    )
+    local -a unset_opts=()
+    local v
+    for v in "${unset_env_var_names[@]}"; do
+        unset_opts+=-u$v
+    done
+
+    exec env "${unset_opts[@]}" "$SHELL" -li
 
     local -a inherit_env_var_names=(
         #Apple_PubSub_Socket_Render

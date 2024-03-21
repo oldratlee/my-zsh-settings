@@ -31,7 +31,7 @@ alias ResetAccessibility='sudo tccutil reset Accessibility'
 mdfind() {
     command mdfind "$@" 2> >(
         rg --line-buffered -Fv ' [UserQueryParser] Loading keywords and predicates for locale ' >&2
-    )
+    ) | coat
 }
 
 # MdFind Directories
@@ -39,7 +39,7 @@ mfd() {
     local f
     mdfind -name "$@" | while IFS= read -r f; do
         [ -d "$f" ] && printf '%s\n' "$f"
-    done | sort
+    done | sort | coat
 }
 compdef mfd=mdfind
 

@@ -105,10 +105,10 @@ gg() {
 }
 compdef _git gg=git-log
 
-alias ggg='glgg -4'
-alias GG='glgg -4'
-alias gggg='glgg -7'
-alias GGG='glgg -7'
+alias ggg='glgg -5'
+alias GG='glgg -5'
+alias gggg='glgg -9'
+alias GGG='glgg -9'
 
 
 ## git branch
@@ -196,7 +196,7 @@ alias gaf='git add -f'
 alias gcoh='git checkout HEAD'
 # checkout previous branch
 alias gcop='git checkout -'
-# checkout most recent modified branch
+# checkout the most recent modified branch
 alias gcor="git checkout \$(gbt | awk -rF' +=> +' '/=>/{print \$2}' | tail -1)"
 
 # git reset/rebase
@@ -214,6 +214,13 @@ alias gamno='git commit --amend --no-edit'
 # git push
 
 alias gpf='git push -f'
+unalias gpsup &>/dev/null
+
+gpsup() {
+    local remote="${1:-origin}"
+    logAndRun git push --set-upstream "$remote" $(git_current_branch)
+}
+compdef _git gpsup=git-push
 
 # compound git command
 
@@ -359,7 +366,7 @@ shgr() {
     for d in `find -maxdepth 6 -iname .git`; do
         (
             cd "$(dirname $d)"
-            warnEcho "\n$PWD :"
+            infoEcho "\n$PWD :"
             shg
         )
     done
@@ -384,7 +391,7 @@ __chgr() {
             local url=$(git remote get-url origin)
             if [[ "$url" =~ '^http'  ]]; then
                 local gitUrl=$(__gitUrl_Http2Git)
-                warnEcho "CHANGE $PWD :"
+                infoEcho "CHANGE $PWD :"
                 echo -e "\t$url\n\tto\n\t$gitUrl"
 
                 git remote set-url origin $gitUrl
@@ -551,7 +558,7 @@ gur() {
             infoEcho "$((++idx)): Update Git repo $(basename "$d"): $d"
             (
                 cd "$d" && {
-                    printf  "repo url: $(git remote get-url origin)"
+                    printf  "repo url: %s\n" "$(git remote get-url origin)"
                     gut
                 }
             ) || failedDirs=( "${failedDirs[@]}" "$d")

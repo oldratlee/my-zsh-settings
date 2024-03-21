@@ -107,7 +107,7 @@ cmb() {
 alias cmc='cmb clean'
 
 __swCMakeCompiler() {
-    local compiler="$1"
+    local compiler=$1 cc cpp
 
     case "$compiler" in
     mac*)
@@ -116,9 +116,11 @@ __swCMakeCompiler() {
         CMG_BUILD_DIR="build-cmake-$CMG_COMPILER${CMG_BT:+-$CMG_BT}"
         ;;
     *gcc)
+        cc=(/usr/local/opt/gcc/bin/gcc-[0-9]*)
+        cpp=(/usr/local/opt/gcc/bin/c++-[0-9]*)
         CMG_COMPILER_OPTS=(
-            -DCMAKE_C_COMPILER=$(echo /usr/local/opt/gcc/bin/gcc-[0-9]*)
-            -DCMAKE_CXX_COMPILER=$(echo /usr/local/opt/gcc/bin/c++-[0-9]*)
+            -DCMAKE_C_COMPILER=${cc[1]}
+            -DCMAKE_CXX_COMPILER=${cpp[1]}
         )
         CMG_COMPILER=brew-gcc
         CMG_BUILD_DIR="build-cmake-$CMG_COMPILER${CMG_BT:+-$CMG_BT}"

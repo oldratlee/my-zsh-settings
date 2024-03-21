@@ -2,14 +2,22 @@
 # Java/JVM Languages
 ###############################################################################
 
-alias java='java -Duser.language=en_US'
-alias javac='javac -J-Duser.language=en_US'
+# _JAVA_OPTIONS Environment Variable in Java
+# https://www.delftstack.com/howto/java/_java_options
+export JAVA_TOOL_OPTIONS='-Duser.language=en_US -Dfile.encoding=UTF-8'
 
-alias jstack='jstack -J-Duser.language=en_US'
-alias jstat='jstat -J-Duser.language=en_US'
+# -Duser.language=en -Duser.country=US
+D_OPT_EN_LANG="$JAVA_TOOL_OPTIONS"
+JD_OPT_EN_LANG=-J-Duser.language=en_US
 
-alias jcmd='jcmd -J-Duser.language=en_US'
-alias jshell='jshell -J-Duser.language=en_US'
+# alias java="java $JD_OPT_EN_LANG"
+# alias javac="javac $JD_OPT_EN_LANG"
+#
+# alias jstack="jstack $JD_OPT_EN_LANG"
+# alias jstat="jstat $JD_OPT_EN_LANG"
+#
+# alias jcmd="jcmd $JD_OPT_EN_LANG"
+# alias jshell="jshell $JD_OPT_EN_LANG"
 
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
@@ -31,16 +39,20 @@ __getLatestJavaHomeForVersion() {
 
 # set JAVA_HOME
 setjh(){
+    local quiet=false
+    [[ $1 = -q ]] && quiet=true
+
     local java_home="$1"
+    [ "$java_home/bin/java" = "$commands[java]" ] && return
 
     if [ -z "$java_home" ]; then
-        local -r sdk_mvn_path=~/.sdkman/candidates/java
+        local -r sdk_java_path=~/.sdkman/candidates/java
         local jh
-        select jh in  $(command ls -v "$sdk_mvn_path" | command grep -v current); do
+        select jh in  $(command ls -v "$sdk_java_path" | command grep -v current); do
             [ -n "$jh" ] && break
         done
         [ -n "$jh" ] || return 1
-        java_home="$sdk_mvn_path/$jh"
+        java_home="$sdk_java_path/$jh"
         echo "set JAVA_HOME=$java_home"
         echo "add PATH: $java_home/bin"
         echo "\nsetjh $java_home"
@@ -51,7 +63,7 @@ setjh(){
         return 1
     fi
 
-    export JAVA_HOME="$java_home"
+    logAndRun -q export JAVA_HOME="$java_home"
 
     local old_java_path=${commands[java]}
     local old_java_dir=${old_java_path%/java}
@@ -59,17 +71,16 @@ setjh(){
     if [ '/usr/bin/java' != "$old_java_path" ]; then
         PATH=${PATH//$old_java_dir}
     fi
-    PATH="$JAVA_HOME/bin:$PATH"
+    PATH=$JAVA_HOME/bin:$PATH
     export PATH=${PATH//::/:}
 
-    # export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Duser.language=en -Duser.country=US -Xverify:none"
     local ver major_ver
-    ver="$("$JAVA_HOME/bin/java" -version 2>&1 | awk -F\" 'NR==1{print $2}')"
+    ver="$("$JAVA_HOME/bin/java" -version 2>&1 | awk -F\" '/\sversion\s"[[:digit:]]/{print $2}')"
     major_ver=${ver%%.*}
     if ((major_ver < 13)); then
-        export JAVA_OPTS='-Duser.language=en -Duser.country=US -Xverify:none'
+        logAndRun -q export JAVA_OPTS="$D_OPT_EN_LANG -Xverify:none"
     else
-        export JAVA_OPTS='-Duser.language=en -Duser.country=US'
+        logAndRun -q export JAVA_OPTS="$D_OPT_EN_LANG"
     fi
 }
 
@@ -130,8 +141,8 @@ showJavaInfos() {
 }
 
 
-alias jvp='javap -J-Duser.language=en -J-Duser.country=US -cp .'
-alias jvpp='javap -J-Duser.language=en -J-Duser.country=US -cp . -p'
+alias jvp="javap $JD_OPT_EN_LANG -cp ."
+alias jvpp="javap $JD_OPT_EN_LANG -cp . -p"
 alias jcc='$HOME/Codes/open/japi-compliance-checker/japi-compliance-checker.pl -skip-internal-packages internal -skip-internal-packages util -skip-internal-packages utils'
 #alias jad='jad -nonlb -space -ff -s java'
 
@@ -176,6 +187,7 @@ dcj() {
 
 alias dcjq='dcj -q'
 
+alias jgcutil='jstat -gcutil -h10'
 
 export JREBEL_HOME=$HOME/Applications/jrebel7.0.2
 
@@ -238,8 +250,14 @@ compdef sc=scala-cli
 # Maven
 ###############################################################################
 
-# export MAVEN_OPTS="${MAVEN_OPTS:+$MAVEN_OPTS }-Xmx768m -Duser.language=en -Duser.country=US"
-export MAVEN_OPTS="-Xmx768m -Duser.language=en -Duser.country=US"
+
+# export MAVEN_OPTS="${MAVEN_OPTS:+$MAVEN_OPTS }-Xmx1g $D_OPT_EN_LANG"
+export MAVEN_OPTS="-Xmx1g $D_OPT_EN_LANG"
+smvnm() {
+    export MAVEN_OPTS="-Xmx$1 $D_OPT_EN_LANG"
+    echo "export MAVEN_OPTS=$MAVEN_OPTS"
+}
+
 
 unalias mvn &> /dev/null
 
@@ -263,6 +281,7 @@ function mvn() {
         findLocalBinOrDefaultToRun mvnw mvn "${args[@]}"
     fi
 }
+alias mvnv='mvn -V'
 
 # quick and dirty mode(qdm)
 #
@@ -382,7 +401,7 @@ mmcv() {
         tee mcv-origin.log
 
         echo
-        infoInteractive "tidy result: "
+        infoEcho "tidy result: "
         echo
     else
         tee mcv-origin.log | printOneLineResponsive
@@ -486,8 +505,8 @@ mavs() {
 sms() {
     local name="$1"
     (
-        cd ~/.m2
-        cp settings.xml."$name" settings.xml
+        builtin cd ~/.m2
+        command cp settings.xml."$name" settings.xml
     )
 }
 smOpen() {
@@ -500,6 +519,14 @@ smMinOpen() {
 ###############################################################################
 # sbt
 ###############################################################################
+
+
+# sbt will use the value in JAVA_TOOL_OPTIONS env var
+export SBT_OPTS="-Xmx1g"
+ssbtm() {
+    export SBT_OPTS="-Xmx$1"
+    echo "export SBT_OPTS=$SBT_OPTS"
+}
 
 function sbt() {
     # auto use java on JAVA_HOME instead of PATH by -java-home option
@@ -516,34 +543,43 @@ function gradle() {
 }
 
 #export GRADLE_OPTS="-Xmx1024m -Xms256m -XX:MaxPermSize=512m"
-alias grw=gradle
+alias gw=gradle
+alias gwv='gradle --version'
 
-alias grwq='grw -q'
-alias grwi='grw -q -I <(echo -n)'
-alias grwb='grw build -x test'
-alias grwB='grw build'
-alias grwc='grw clean'
-alias grwcb='grw clean build -x test'
-alias grwcB='grw clean build'
-alias grwt='grw test'
+alias gwq='gw -q'
+alias gwi='gw -q -I <(echo -n)'
+alias gwb='gw build -x test'
+alias gwB='gw build'
+alias gwc='gw clean'
+alias gwcb='gw clean build -x test'
+alias gwcB='gw clean build'
+alias gwt='gw test'
 
-alias grwf='grw --refresh-dependencies'
-alias grwfb='grw --refresh-dependencies build -x test'
-alias grwfB='grw --refresh-dependencies build'
-alias grwfc='grw --refresh-dependencies clean'
-alias grwfcb='grw --refresh-dependencies clean build -x test'
-alias grwfcB='grw --refresh-dependencies clean build'
+alias gwf='gw --refresh-dependencies'
+alias gwfb='gw --refresh-dependencies build -x test'
+alias gwfB='gw --refresh-dependencies build'
+alias gwfc='gw --refresh-dependencies clean'
+alias gwfcb='gw --refresh-dependencies clean build -x test'
+alias gwfcB='gw --refresh-dependencies clean build'
 
-alias grwd='grw -q dependencies'
-alias grwdd='grw -q dependencies --configuration'
-alias grwdc='grw -q dependencies --configuration compile'
-alias grwdr='grw -q dependencies --configuration runtime'
-alias grwdtc='grw -q dependencies --configuration testCompile'
+alias gwd='gw -q dependencies'
+alias gwdd='gw -q dependencies --configuration'
+alias gwdc='gw -q dependencies --configuration compile'
+alias gwdr='gw -q dependencies --configuration runtime'
+alias gwdtc='gw -q dependencies --configuration testCompile'
 
 gwrapper() {
-    local ver="${1:-4}"
+    local ver=$1
+    [[ -z $ver && -f gradle/wrapper/gradle-wrapper.properties ]] && {
+        ver=$(rg -Po '(?<=distributions/gradle-).*?(?=-\w*\.zip$)' gradle/wrapper/gradle-wrapper.properties)
+    }
+    [[ -z $ver ]] && {
+        errorInteractive "can not detect gradle version, specify it!"
+        return 1
+    }
+
     local major_ver="${ver%%.*}"
-    local -a gradle_args=(wrapper --distribution-type=all)
+    local -a gradle_args=(wrapper --distribution-type=all) gradle_args_4=()
     if ((major_ver == 2)); then
         logAndRun "$SDKMAN_DIR/candidates/gradle/2.14.1/bin/gradle" wrapper
     elif ((major_ver == 4)); then
@@ -552,7 +588,7 @@ gwrapper() {
         local gradle_installs=("$SDKMAN_DIR/candidates/gradle"/[0-9]*/bin/gradle)
         local latest_ver
         latest_ver=$(printf '%s\n' "${gradle_installs[@]}" | sort -V | tail -n 1)
-        logAndRun "$latest_ver" "${gradle_args[@]}"
+        logAndRun "$latest_ver" "${gradle_args[@]}" --gradle-version "$ver"
     else
         errorInteractive "gradle version $ver NOT supported!"
         return 1
@@ -566,7 +602,7 @@ alias sgrdm="jps -mlvV | awk '\$2==\"org.gradle.launcher.daemon.bootstrap.Gradle
 
 
 ###############################################################################
-# Lein
+# Leiningen
 ###############################################################################
 
 lein() {
