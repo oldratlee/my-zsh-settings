@@ -90,7 +90,7 @@ export_java_env_vars() {
     #export JAVA_HOME=$(/usr/libexec/java_home -v 1.6)
     #export JAVA6_HOME='/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home'
     local jv_version jv_home expr
-    for jv_version in 6 8 11 17 19 {20..25}; do
+    for jv_version in 8 11 17 21 {25..30}; do
         jv_home=$(__getLatestJavaHomeForVersion $jv_version)
         if [ -z "$jv_home" ]; then
             unset JAVA${jv_version}_HOME JAVA${jv_version}HOME
@@ -140,6 +140,15 @@ showJavaInfos() {
     logAndRun java -version
 }
 
+jdkls() {
+    sdk ls java | tee ~/tmp/sdk-ls-java-original.txt | sed -n '
+        /^-----/,/^=====/ {
+            /^[-=]/d
+            p
+        }
+    ' | sort -t'|' -k6V | tee ~/tmp/sdk-ls-java.txt
+    gvim ~/tmp/sdk-ls-java.txt
+}
 
 alias jvp="javap $JD_OPT_EN_LANG -cp ."
 alias jvpp="javap $JD_OPT_EN_LANG -cp . -p"
@@ -226,25 +235,12 @@ dcs() {
 alias dcsq='dcs -q'
 
 
-# Scala CLI
-
-sc() {
-    compdef sc=scala-cli
-
-    # https://scala-cli.virtuslab.org/docs/reference/cli-options/
-    #
-    # scala-cli --power config httpProxy.address http://127.0.0.1:7070
-    scala-cli --java-home="/Users/jerry/.sdkman/candidates/java/17" "$@"
-}
-# alias sc='scala-cli --java-home="/Users/jerry/.sdkman/candidates/java/17"'
-
+alias sc='scala-cli --java-home /Users/jerry/.sdkman/candidates/java/17'
+alias scf='scala-cli fmt'
 # >>> scala-cli completions >>>
 fpath=("/Users/jerry/Library/Application Support/ScalaCli/completions/zsh" $fpath)
 compinit
 # <<< scala-cli completions <<<
-
-compdef sc=scala-cli
-
 
 ###############################################################################
 # Maven
@@ -267,21 +263,22 @@ unalias mvn &> /dev/null
 
 function mvn() {
     local args=(${MVN_REPO_LOCAL:+"-Dmaven.repo.local=$MVN_REPO_LOCAL"} "$@")
+    local default_opts=(-V)
 
     if [ "${USE_M2+defined}" ]; then
         local M2_BIN="$SDKMAN_CANDIDATES_DIR/maven/2.2.1/bin/mvn"
         infoInteractive "use maven 2: $M2_BIN"
 
-        logAndRun "$M2_BIN" ${MVN_REPO_LOCAL:+"-Dmaven.repo.local=$MVN_REPO_LOCAL"} "$@"
-    elif [ -n "${USE_MVND+defined}" ]; then
-        infoInteractive "use mvnd: $(which mvnd)"
-
-        logAndRun mvnd "${args[@]}"
+        logAndRun "$M2_BIN" ${MVN_REPO_LOCAL:+"-Dmaven.repo.local=$MVN_REPO_LOCAL"} ${default_opts} "$@"
+    elif [ -n "${USE_MVNW+defined}" ]; then
+        findLocalBinOrDefaultToRun mvnw mvn ${default_opts} "${args[@]}"
     else
-        findLocalBinOrDefaultToRun mvnw mvn "${args[@]}"
+        logAndRun mvnd ${default_opts} "${args[@]}"
     fi
 }
-alias mvnv='mvn -V'
+
+
+alias mdk='mvnd --stop'
 
 # quick and dirty mode(qdm)
 #
@@ -546,27 +543,28 @@ function gradle() {
 alias gw=gradle
 alias gwv='gradle --version'
 
-alias gwq='gw -q'
-alias gwi='gw -q -I <(echo -n)'
-alias gwb='gw build -x test'
-alias gwB='gw build'
-alias gwc='gw clean'
-alias gwcb='gw clean build -x test'
-alias gwcB='gw clean build'
-alias gwt='gw test'
+alias gwq='gradle -q'
+alias gwi='gradle -q -I <(echo -n)'
+alias gwb='gradle build -x test'
+alias gwB='gradle build'
+alias gwc='gradle clean'
+alias gwcb='gradle clean build -x test'
+alias gwcB='gradle clean build'
+alias gwtc='gradle testClasses'
+alias gwt='gradle test'
 
-alias gwf='gw --refresh-dependencies'
-alias gwfb='gw --refresh-dependencies build -x test'
-alias gwfB='gw --refresh-dependencies build'
-alias gwfc='gw --refresh-dependencies clean'
-alias gwfcb='gw --refresh-dependencies clean build -x test'
-alias gwfcB='gw --refresh-dependencies clean build'
+alias gwf='gradle --refresh-dependencies'
+alias gwfb='gradle --refresh-dependencies build -x test'
+alias gwfB='gradle --refresh-dependencies build'
+alias gwfc='gradle --refresh-dependencies clean'
+alias gwfcb='gradle --refresh-dependencies clean build -x test'
+alias gwfcB='gradle --refresh-dependencies clean build'
 
-alias gwd='gw -q dependencies'
-alias gwdd='gw -q dependencies --configuration'
-alias gwdc='gw -q dependencies --configuration compile'
-alias gwdr='gw -q dependencies --configuration runtime'
-alias gwdtc='gw -q dependencies --configuration testCompile'
+alias gwd='gradle -q dependencies'
+alias gwdd='gradle -q dependencies --configuration'
+alias gwdc='gradle -q dependencies --configuration compile'
+alias gwdr='gradle -q dependencies --configuration runtime'
+alias gwdtc='gradle -q dependencies --configuration testCompile'
 
 gwrapper() {
     local ver=$1

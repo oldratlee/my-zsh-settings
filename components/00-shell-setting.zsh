@@ -32,6 +32,7 @@ setopt hist_ignore_space
 setopt inc_append_history
 # To retrieve the history file everytime history is called upon.
 setopt share_history
+setopt extended_history
 
 # append brew man
 # export MANPATH="$(cat $ZSH_CACHE_DIR/man_path_cache):$MANPATH"
@@ -86,6 +87,11 @@ alias od='od -c -tx1 -tu1'
 export LESS="-RiXF"
 alias lev='LESS=-Ri less'
 
+alias -g A='| gawk'
+alias -g X='| gxargs'
+alias -g S='| gsort'
+alias -g C='| c'
+
 pt() {
     pstree "$@" | coat -n
 }
@@ -110,7 +116,7 @@ function mdd() {
     md "$1" && cd "$1"
 }
 alias du='du -h'
-alias nd='ncdu --confirm-quit --show-percent --show-itemcount --graph-style=half-block'
+alias nd='ncdu --confirm-quit --show-percent --show-itemcount --graph-style=half-block --color dark-bg'
 #alias df='command df -h'
 alias df='/bin/df -h | sort -k3,3h'
 
@@ -166,31 +172,20 @@ __mzs_auto_env_chpwd_hook() {
 }
 typeset -f autoenv_init >/dev/null && add-zsh-hook chpwd __mzs_auto_env_chpwd_hook
 
-viewAutoEnvFiles() {
-    local d=$PWD
-    local view_files=()
-    while [ -n "$d" ]; do
-        [ -e "$d/$AUTOENV_ENV_FILENAME" ] && view_files+=$d/$AUTOENV_ENV_FILENAME
-        [ -e "$d/$AUTOENV_ENV_LEAVE_FILENAME" ] && view_files+=$d/$AUTOENV_ENV_LEAVE_FILENAME
-
-        d=${d%/*}
-    done
-    if ((${#view_files[@]} > 0)); then
-        bat -l zsh "${view_files[@]}"
-    else
-        infoInteractive "No autoenv files found."
-    fi
-}
+# A smarter cd command.
+# https://github.com/ajeetdsouza/zoxide
+eval "$(zoxide init zsh --cmd j)"
 
 alias rr=ranger
+alias y=yazi
 
 alias tailf='tail -f'
 alias btee='col -b | tee'
 compdef btee=tee
 
-alias D=colordiff
-alias diff=colordiff
-alias bcp=bcompare
+#alias D=colordiff
+#alias diff=colordiff
+#alias bcp=bcompare
 
 alias grep='grep --color=auto --exclude-dir={.git,.hg,.svn,.cvs,bzr,CVS,target,.mvn,.gradle,.settings,build,_site,.idea,Pods,taobao-tomcat} --exclude=\*.{ipr,iml,iws,jar,war,zip,tmp}'
 export GREP_COLORS='mt=1;7;33'
@@ -204,6 +199,9 @@ alias rgl='rg -l'
 alias rgv='rg -v'
 alias rgh='rg --hidden'
 alias rga='rg -uuu'
+# --no-heading: standard grep-like format
+alias rgp='rg --no-heading'
+alias -g G='| rg'
 
 alias fdi='fd -i'
 alias fda='fd -HI'
@@ -235,42 +233,47 @@ compdef ta=type
 
 ### editor ###
 
-alias vi=v
+alias vi=vim
+alias vw='vim -R'
+alias vd='vim -d'
 
 alias v=vim
-alias v8='v -c "set tabstop=8"'
-alias v4='v -c "set tabstop=4"'
+alias v8='vim -c "set tabstop=8"'
+alias v4='vim -c "set tabstop=4"'
 
-alias vv='col -b | v -'
-alias vv8='col -b | v -c "set tabstop=8 | retab" -'
-alias vv4='col -b | v -c "set tabstop=4 | retab" -'
+alias vv='col -b | vim -'
+alias vv8='col -b | vim -c "set tabstop=8 | retab" -'
+alias vv4='col -b | vim -c "set tabstop=4 | retab" -'
 
-alias vw='v -R'
-alias vd='v -d'
+alias -g V='| col -b | vim -'
+alias -g V8='| col -b | vim -c "set tabstop=8 | retab" -'
+alias -g V4='| col -b | vim -c "set tabstop=4 | retab" -'
 
 
 alias nv=nvim
-alias nv8='nv -c "set tabstop=8"'
-alias nv4='nv -c "set tabstop=4"'
+alias nvw='nvim -R'
+alias nvd='nvim -d'
 
-alias nvv='col -b | nv -'
-alias nvv8='col -b | nv -c "set tabstop=8 | retab" -'
-alias nvv4='col -b | nv -c "set tabstop=4 | retab" -'
+alias nv8='nvim -c "set tabstop=8"'
+alias nv4='nvim -c "set tabstop=4"'
 
-alias nvw='nv -R'
-alias nvd='nv -d'
+alias nvv='col -b | nvim -'
+alias nvv8='col -b | nvim -c "set tabstop=8 | retab" -'
+alias nvv4='col -b | nvim -c "set tabstop=4 | retab" -'
 
 
 alias lv=lvim
-alias lv8='lv -c "set tabstop=8"'
-alias lv4='lv -c "set tabstop=4"'
+alias lv8='lvim -c "set tabstop=8"'
+alias lv4='lvim -c "set tabstop=4"'
 
-alias lvv='col -b | lv -'
-alias lvv8='col -b | lv -c "set tabstop=8 | retab" -'
-alias lvv4='col -b | lv -c "set tabstop=4 | retab" -'
+alias lvv='col -b | lvim -'
+alias lvv8='col -b | lvim -c "set tabstop=8 | retab" -'
+alias lvv4='col -b | lvim -c "set tabstop=4 | retab" -'
 
-alias lvw='lv -R'
-alias lvd='lv -d'
+alias lvw='lvim -R'
+alias lvd='lvim -d'
+
+alias -g LV='| lvim -'
 
 
 alias gv=gvim
@@ -292,15 +295,16 @@ alias gv=gvim
 #        xkbswitch -s $im
 #    fi
 #}
-alias gv8='gv -c "set tabstop=8"'
-alias gv4='gv -c "set tabstop=4"'
+alias gv8='gvim -c "set tabstop=8"'
+alias gv4='gvim -c "set tabstop=4"'
 
-alias gvv='col -b | gv -'
-alias gvv8='col -b | gv -c "set tabstop=8 | retab" -'
-alias gvv4='col -b | gv -c "set tabstop=4 | retab" -'
+alias gvv='col -b | gvim -'
+alias gvv8='col -b | gvim -c "set tabstop=8 | retab" -'
+alias gvv4='col -b | gvim -c "set tabstop=4 | retab" -'
 
-alias gvw='gv -R'
-alias gvd='gv -d'
+alias gvw='gvim -R'
+alias gvd='gvim -d'
+alias -g GV='| gvim -'
 
 alias note='(cd ~/notes; gv)'
 
@@ -375,6 +379,7 @@ d() {
 
 ### tools ###
 
+alias tmux='SHLVL= tmux'
 alias t=tmux
 
 # tmux create or attach
@@ -399,8 +404,11 @@ alias axl='axel -n16'
 ## reduce exit time of fpp by resetting shell to bash
 alias fpp='SHELL=/bin/bash fpp'
 alias p=fpp
+alias -g P='| fpp'
 
 alias f=fzf
+alias -g F='| fzf'
+
 alias pwsh='pwsh -NoLogo'
 
 ### network ###
@@ -447,15 +455,12 @@ pp() {
         return
     fi
 
-    local port=7070 proxy_type=sock5
+    local port=7080 proxy_type=http
     while true; do
         case "$1" in
-        -p)
-            port="$2"
-            shift 2
-            ;;
-        -h)
-            proxy_type=http
+        -s)
+            proxy_type=sock5
+            port=7050
             shift
             ;;
         *)
@@ -472,7 +477,7 @@ pp() {
     # https://unix.stackexchange.com/questions/411304
     if (($force_http_proxy_type_commands[(Ie)$1])); then
         proxy_type=http
-        ((port == 7050)) && port=7080
+        port=7080
     fi
 
     infoInteractive "use $proxy_type proxy on port $port: $*"
@@ -491,12 +496,8 @@ pp() {
     )
 }
 compdef pp=time
-alias pph='pp -h'
-alias ppm='pp -p 7050'
-alias ppmh='pp -p 7080 -h'
+alias pps='pp -s'
 compdef pph=time
-compdef ppm=time
-compdef ppmh=time
 
 ### markdown ###
 
@@ -535,6 +536,7 @@ alias otv=octave-cli
 ### my utils ###
 
 alias cap='c ap'
+alias cbn='c basename'
 
 # print command Bin Path on env $PATH
 bp() {
@@ -598,36 +600,14 @@ rsh() {
     exec env "${unset_opts[@]}" "$SHELL" -li
 
     local -a inherit_env_var_names=(
-        #Apple_PubSub_Socket_Render
-        COLORFGBG
-        COLORTERM
-        COMMAND_MODE
-        DISPLAY
-        ITERM_PROFILE
-        ITERM_SESSION_ID
-        LC_TERMINAL
-        LC_TERMINAL_VERSION
-        LOGNAME
-        SECURITYSESSIONID
-        #SHELL
-        SSH_AUTH_SOCK
-        TERM
-        TERM_PROGRAM
-        TERM_PROGRAM_VERSION
-        TERM_SESSION_ID
-        TMPDIR
-        TMUX
-        TMUX_CONF
-        TMUX_CONF_LOCAL
-        TMUX_PANE
-        TMUX_PLUGIN_MANAGER_PATH
-        TMUX_PROGRAM
-        TMUX_SOCKET
-        USER
-        XPC_FLAGS
-        XPC_SERVICE_NAME
-        __CFBundleIdentifier
-        __CF_USER_TEXT_ENCODING
+        # SHELL
+        USER TMPDIR
+        # Apple_PubSub_Socket_Render
+        COLORFGBG COLORTERM LC_TERMINAL LC_TERMINAL_VERSION COMMAND_MODE
+        DISPLAY LOGNAME SECURITYSESSIONID SSH_AUTH_SOCK
+        ITERM_PROFILE ITERM_SESSION_ID TERM TERM_PROGRAM TERM_PROGRAM_VERSION TERM_SESSION_ID
+        TMUX TMUX_CONF TMUX_CONF_LOCAL TMUX_PANE TMUX_PLUGIN_MANAGER_PATH TMUX_PROGRAM TMUX_SOCKET
+        XPC_FLAGS XPC_SERVICE_NAME __CFBundleIdentifier __CF_USER_TEXT_ENCODING
     )
 
     local export_vars=() v assign

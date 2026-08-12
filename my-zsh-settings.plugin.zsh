@@ -44,7 +44,6 @@ errorInteractive() {
     __uInteractive '1;36;41' "$*"
 }
 
-
 printOneLineResponsive() {
     if [ ! -t 1 ]; then
         cat >/dev/null

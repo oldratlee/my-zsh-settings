@@ -4,50 +4,72 @@
 
 # ZSH_PIP_INDEXES='http://pypi.douban.com/simple/'
 
-unalias ipython
-alias ipy='ipython --matplotlib --pylab'
-alias bpy=bpython
+alias py=python3
+unalias ipython &> /dev/null
+alias ipy='ipython'
+alias ipyl='ipython --matplotlib --pylab'
+#alias bpy=bpython
 
 alias nb='LANGUAGE= LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-notebook'
 alias lab='LANGUAGE= LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-lab'
 
 alias pyenv='"${PY:-python3}" -m venv'
 
+
+pypath() {
+    local ver=${1:-}
+    if [ -z "$ver" ]; then
+        command -v python3
+    elif [[ $ver -regex-match '^3\.?([0-9]{1,2})$' ]]; then
+        echo "$HOME/miniforge3/envs/py3$match/bin/python3"
+    else
+        return 1
+    fi
+}
+
 unalias pip
 pip() {
     [ -z "${PY:-}" ] || infoInteractive "use \$PY: $PY"
     "${PY:-python3}" -m pip "$@"
 }
-pip3() {
-    pip "$@"
-}
-
+alias pip3=pip
 
 pipup() {
     pip list --outdated | awk 'NR>2{print $1}' | xargs pip install --upgrade
 }
 
 unalias pipir
-
 pipir() {
     local req="${1:-requirements.txt}"
     pip install -r "$req"
 }
 
-# export PATH="$HOME/.miniconda3/bin:$PATH"
+pifr() {
+    local req="${1:-requirements.txt}"
+    if [ -d $req ]; then
+        echo "$req is a EXISTED DIR"
+        return 1
+    elif [ -f $req ]; then
+        echo "$req is a EXISTED file"
+        return 1
+    fi
+    pip freeze | tee $req
+}
+
+# export PATH="$HOME/miniforge3/bin:$PATH"
 
 __setupMiniconda3() {
     # >>> conda initialize >>>
     # !! Contents within this block are managed by 'conda init' !!
-    local __conda_setup="$("$HOME/.miniconda3/bin/conda" 'shell.zsh' 'hook' 2> /dev/null)"
+    local __conda_setup="$("$HOME/miniforge3/bin/conda" 'shell.zsh' 'hook' 2> /dev/null)"
 
     if [ $? -eq 0 ]; then
         eval "$__conda_setup"
     else
-        if [ -f "$HOME/.miniconda3/etc/profile.d/conda.sh" ]; then
-            . "$HOME/.miniconda3/etc/profile.d/conda.sh"
+        if [ -f "$HOME/miniforge3/etc/profile.d/conda.sh" ]; then
+            . "$HOME/miniforge3/etc/profile.d/conda.sh"
         else
-            export PATH="$HOME/.miniconda3/bin:$PATH"
+            export PATH="$HOME/miniforge3/bin:$PATH"
         fi
     fi
     # unset __conda_setup
@@ -68,7 +90,7 @@ ame() {
         logAndRun conda activate "$a_env"
     else
         # select a_env in `conda info --envs | awk '/^[^#]/{print $1}'`; do
-        select a_env in `find $HOME/.miniconda3/envs -maxdepth 1 -mindepth 1 -type d | xargs -n1 basename`; do
+        select a_env in `find $HOME/miniforge3/envs -maxdepth 1 -mindepth 1 -type d | xargs -n1 basename`; do
             if [ -n "$a_env" ]; then
                 dme
                 echo
@@ -83,6 +105,11 @@ ame() {
 # deactivate miniconda3 environment
 dme() {
     [ -n "$CONDA_DEFAULT_ENV" ] && conda deactivate
+}
+
+rcme() {
+    logAndRun conda remove -n $1 --all -y
+    logAndRun conda create -n "$1" python=${PYV:-3.13} "${2:-$1}" -y
 }
 
 
@@ -200,19 +227,11 @@ pve() {
 }
 
 
-export POETRY_HOME="$HOME/.pypeotry"
-
+#export POETRY_HOME="$HOME/.pypeotry"
 alias po=poetry
-alias por='poetry run'
 
-alias poa='poetry add'
-
-alias pock='poetry lock'
-alias pock='poetry lock'
-
-alias pdt='poetry show --tree'
-
-alias pocdenv='$(poetry env info --path)'
+unalias psync &>/dev/null
+alias psync='poetry sync'
 
 poreq() {
     local -r req_file=requirements.txt
@@ -331,12 +350,13 @@ __node_switch() {
 alias n16='__node_switch 16'
 alias n0='__node_switch_clear'
 
-unalias npmg
+unalias npmg &> /dev/null
 alias nr='npm run'
 alias ni='npm install'
 
 alias ng='npm -g'
-alias nig='npm install -g'
+alias ngi='npm -g install'
+alias ngo='npm -g outdated'
 
 
 # tabtab source for packages

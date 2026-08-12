@@ -98,18 +98,16 @@ alias gcignore='git check-ignore -v'
 
 # git log
 unalias gg
-gg() {
+ggo() {
     local -a options_when_console
     [ -t 1 ] && options_when_console=(--color -$LINES)
     glog $options_when_console "$@" | catOneScreen
 }
 compdef _git gg=git-log
 
+alias gg='glog -15'
 alias ggg='glgg -5'
-alias GG='glgg -5'
 alias gggg='glgg -9'
-alias GGG='glgg -9'
-
 
 ## git branch
 
@@ -482,33 +480,7 @@ gclb() {
 alias glabclb='gclb -u gitlab -fg'
 
 # git browse
-gbw() {
-    local args=("$@") arg url
-    args=${args:-.}
-
-    for arg in "${args[@]}"; do
-        if [ -d "$arg" ]; then
-            (
-                cd "$arg"
-                url=$(cd "$1" && git remote get-url origin)
-                if ! [[ "$url" =~ '^http' ]]; then
-                    url=$(__gitUrl_Git2Http)
-                fi
-
-                echo "open $url @ dir $arg"
-                open "$url"
-            )
-        else
-            url="$arg"
-            if ! [[ "$url" =~ '^http' ]]; then
-                url=$(__gitUrl_Git2Http)
-            fi
-
-            echo "open $url @ dir $arg"
-            open "$url"
-        fi
-    done
-}
+alias gbw=git-browse
 
 # git up
 # https://github.com/msiemens/PyGitUp
@@ -579,19 +551,54 @@ gur() {
 alias gsa='git submodule add'
 
 gpc() {
-    local c
+    local c counter=1
     for c; do
+        infoInteractive "$counter / $#"
         logAndRun git push origin "$c:$(git_current_branch)"
+        ((counter != 1)) && sleep 60
+        ((counter++))
     done
 }
 
 gpcf() {
-    [ $# != 1 ] && {
-        echo "only 1 argument, but $@"
-        return 1
-    }
-    local c
-    logAndRun git push -f origin "$1:$(git_current_branch)"
+    local c counter=1
+    for c; do
+        infoInteractive "$counter / $#"
+        if ((counter == 1)); then
+            logAndRun git push -f origin "$c:$(git_current_branch)"
+        else
+            sleep 60
+            logAndRun git push origin "$c:$(git_current_branch)"
+        fi
+        ((counter++))
+    done
+}
+
+gpcfn() {
+    local nap=60
+    # parse options
+    while true; do
+        case "$1" in
+        -n)
+            nap="${2}"
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+        esac
+    done
+    local c isFirst=true counter=1
+    for c in "$@"; do
+        infoInteractive "[$((counter++)) / $#]"
+        if $isFirst; then
+            isFirst=false
+            logAndRun git push -f origin "$c:$(git_current_branch)"
+        else
+            ((nap > 0)) && sleep $nap
+            logAndRun git push origin "$c:$(git_current_branch)"
+        fi
+    done
 }
 
 # TODO
@@ -606,8 +613,8 @@ repush() {
     echo
     echo "force repush above commit?[C(omfirm)/Q(uit)]"
     local s
-    select s in C Q; do
-
+    select s in "C" Q; do
+        echo "$s"
     done
 
     select opt in "${options[@]}"

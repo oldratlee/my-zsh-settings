@@ -43,7 +43,7 @@ alias zbt='zig build test'
 
 export VCPKG_ROOT="$HOME/.vcpkg"
 
-source "$VCPKG_ROOT/scripts/vcpkg_completion.zsh"
+source "$VCPKG_ROOT/scripts/vcpkg_completion.zsh" &> /dev/null
 
 alias vp='vcpkg'
 alias vps='vcpkg search'
