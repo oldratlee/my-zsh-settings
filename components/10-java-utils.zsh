@@ -143,10 +143,9 @@ showJavaInfos() {
 jdkls() {
     sdk ls java | tee ~/tmp/sdk-ls-java-original.txt | sed -n '
         /^-----/,/^=====/ {
-            /^[-=]/d
-            p
+            /|/p
         }
-    ' | sort -t'|' -k6V | tee ~/tmp/sdk-ls-java.txt
+    ' | sort -t'|' -k4V | tee ~/tmp/sdk-ls-java.txt
     gvim ~/tmp/sdk-ls-java.txt
 }
 
@@ -478,7 +477,7 @@ mav() {
     coordinate="${coordinate//://}"
     coordinate="${coordinate//.//}"
     command http "https://repo1.maven.org/maven2/$coordinate/maven-metadata.xml" |
-        awk -F'</?release>' '/<release>/{print $2}'
+    awk -F'</?release>' '/<release>/{print $2}'
     # coordinate="${coordinate//://}"
     # command http --follow "https://img.shields.io/maven-central/v/$coordinate.svg"  |
     #     command rg '(?<="maven-central: v)[^"]+(?=")' -Po

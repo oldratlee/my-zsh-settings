@@ -142,7 +142,7 @@ __gb_sc() {
 
 gbt() {
     [ -t 1 ] && local force_color_option=--color
-    __gb_sc $force_color_option -a "$@" | hint_git_simple_branch_name
+    __gb_sc $force_color_option -a "$@" | hint_git_branch_local_name
 }
 
 gbtr() {
@@ -272,6 +272,24 @@ __heavyOpenFileByApp() {
     done
 
     logAndRun open --new -a "$app" --args "${absolute_files[@]}"
+}
+
+rb() {
+    (( $# == 0 )) && local -a files=( . ) || local -a files=( "$@" )
+    local f isFirst=true
+    for f in "${files[@]}"; do
+        $isFirst && isFirst=false || echo
+        (
+            cd "${f}"
+            local git_root
+            git_root="$(git rev-parse --show-toplevel)" || {
+                echo "Error: $PWD($f) is NOT a git repo!"
+                return 2
+            }
+            open -a /Applications/Rebased.app "$git_root"
+            echo "Rebased open $git_root ( $f )"
+        )
+    done
 }
 
 st() {
@@ -480,7 +498,19 @@ gclb() {
 alias glabclb='gclb -u gitlab -fg'
 
 # git browse
-alias gbw=git-browse
+# alias gbw=git-browse
+gbw() {
+    local git_url=$(git remote get-url origin)
+    # git@github.com:oldratlee/dynamic-programming-study.git
+    # https://github.com/oldratlee/dynamic-programming-study.git
+    if [[ $git_url =~ git[a-z]*@([^:]+):([^[:space:]]+)\.git? ]]; then
+        logAndRun open "https://$match[1]/$match[2]"
+    elif [[ $git_url =~ (https?://[^[:space:]]+)\.git ]]; then
+        logAndRun open "$match[1]"
+    else
+        errorEcho "unrecognized url: $1"
+    fi
+}
 
 # git up
 # https://github.com/msiemens/PyGitUp

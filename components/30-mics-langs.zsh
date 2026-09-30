@@ -6,8 +6,7 @@
 
 alias py=python3
 unalias ipython &> /dev/null
-alias ipy='ipython'
-alias ipyl='ipython --matplotlib --pylab'
+alias ipy='ipython --matplotlib --pylab'
 #alias bpy=bpython
 
 alias nb='LANGUAGE= LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 jupyter-notebook'
@@ -387,8 +386,8 @@ alias ngo='npm -g outdated'
 # Erlang
 ###############################################################################
 
-alias rb2=rebar
-alias rb=rebar3
+alias rbr2=rebar
+alias rbr=rebar3
 
 erun() {
     if [ $# -lt 2 ]; then

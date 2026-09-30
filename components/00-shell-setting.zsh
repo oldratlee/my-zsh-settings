@@ -8,8 +8,7 @@
 
 export LANG=en_US.UTF-8
 export LC_CTYPE=UTF-8
-# export EDITOR=vim
-export EDITOR=lvim
+export EDITOR=vim
 
 # iTerm2 supports true colors, however, there's no official way of advertising this feature.
 #   https://gitlab.com/gnachman/iterm2/-/issues/5294
@@ -45,7 +44,10 @@ alias help=run-help
 alias h=run-help
 alias a=apropos
 
-export PATH="$HOME/.local/bin:$HOME/bin:$HOME/bin/useful-scripts/bin:$PATH"
+alias bx='bash -x'
+
+#export PATH="$HOME/.local/bin:$HOME/bin:$HOME/bin/useful-scripts/bin:$PATH"
+export PATH="$HOME/.local/useful-scripts/bin:$PATH"
 # Calibre utils, brew texinfo
 #export PATH="/usr/local/opt/texinfo/bin:$PATH:/Applications/calibre.app/Contents/MacOS"
 
@@ -82,6 +84,7 @@ done
 # do NOT overwrite an existing file
 alias cp='cp -i'
 alias mv='mv -i'
+
 alias od='od -c -tx1 -tu1'
 
 export LESS="-RiXF"
@@ -177,6 +180,7 @@ typeset -f autoenv_init >/dev/null && add-zsh-hook chpwd __mzs_auto_env_chpwd_ho
 eval "$(zoxide init zsh --cmd j)"
 
 alias rr=ranger
+alias ff=spf
 alias y=yazi
 
 alias tailf='tail -f'
