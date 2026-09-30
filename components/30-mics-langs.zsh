@@ -387,8 +387,8 @@ alias ngo='npm -g outdated'
 # Erlang
 ###############################################################################
 
-alias rb2=rebar
-alias rb=rebar3
+alias rbr2=rebar
+alias rbr=rebar3
 
 erun() {
     if [ $# -lt 2 ]; then

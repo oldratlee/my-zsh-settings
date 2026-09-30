@@ -219,10 +219,11 @@ removeFromPath() {
 # source sub-components
 ###############################################################################
 
-for ___my_setting_component_name__ in "${0%/*}/components"/*.zsh; do
-    source "$___my_setting_component_name__"
+local _plugin_dir="${0:A:h}"
+local _component
+for _component in "$_plugin_dir/components"/*.zsh; do
+    source "$_component"
 done
-unset ___my_setting_component_name__
 
 # https://github.com/hyperupcall/autoenv
 # if functions autoenv_init &>/dev/null; then

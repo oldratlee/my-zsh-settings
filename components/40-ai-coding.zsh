@@ -1,22 +1,24 @@
 ########################################
-# AI editor
-########################################
-
-alias cursor-agent='pp command cursor-agent'
-alias csa='cursor-agent'
-alias csc='cursor-agent --continue'
-
-alias wds='windsurf'
-
-########################################
 # CLI
 ########################################
 
-export PATH="$HOME/.claude/my-bin:$PATH"
+alias cursor-agent='pp command cursor-agent'
+alias cs='cursor-agent'
+alias csc='cursor-agent --continue'
+#fpath=(~/.grok/completions/zsh $fpath)
+alias gk='grok'
+
 
 alias codex='pp command codex'
 alias cx='codex'
+alias cxc='codex resume --last'
+alias cgpt='open -a /Applications/ChatGPT.app'
 
+alias oc=opencode
+alias occ='opencode -c'
+# source <(opencode completion zsh)
+
+export PATH="$HOME/.claude/my-bin:$PATH"
 
 _findCldSettingsLocal__() {
   readonly SETTING_LOCAL=settings.local.json
@@ -96,25 +98,48 @@ alias cldr='claude -r'
 alias clda='PWD=/Users/jerry/tmp/cld-agents-base claude agents'
 
 
-alias oc=opencode
-alias occ='opencode -c'
-source <(opencode completion zsh)
-
-
 alias gemini='pp command gemini'
 alias gmn='gemini'
 
+
 alias juniec='junie --resume'
+
 
 # alias ocl='pp command openclaw'
 
 # OpenClaw Completion
 #source "$HOME/.openclaw/completions/openclaw.zsh"
 
-#exporm MINIMAX_API_KEY='sk-api-o56HPjo_aPWMUrhBWHinjdcbHnaVB9RABWpwn8LUNEpSQee4f8rYxv0tj_IM9SgVS_kWnWsgVolyVnRqlH9NaEm7ByFC9ry3nxD78PJw9D8kFfEEzLced9A'
-# MINIMAX_API_KEY='sk-api-NfFQcNqqoh-SEGSca-N38qgy7i7OUFbKsE6ZZA9SnQ4riiAHWipemqhACXigBm_YKqkybe5Sa1aw5a8CV6lY7TZvf8kDFgnBes7-yDIkLqDStPhs1BLrRHU'
+upgrade_coding_agents() {
+    time pp command claude upgrade
+    time pp command codex update
+    time pp command opencode upgrade
+    time pp command cursor-agent upgrade
+    time pp command grok update
+    logAndRun -p comagic upgrade
 
-alias skl='DISABLE_TELEMETRY=1 skills'
+    gen_coding_agents_completion
+}
+
+
+gen_coding_agents_completion() {
+    local completion_dir=$ZSH_CUSTOM/completions
+    logAndRun command codex completion zsh > $completion_dir/_codex
+    logAndRun command opencode completion zsh > $completion_dir/_opencode
+    logAndRun command comagic completion zsh > $completion_dir/_comagic
+}
+
+########################################
+# skills
+########################################
+
+alias skills='DISABLE_TELEMETRY=1 skills'
+alias skl='skills'
+alias skls='skills list'
+
+alias sklfd='skills find'
+alias skla='skills add'
+alias sklrm='skills remove'
 
 ########################################
 # code indexer
