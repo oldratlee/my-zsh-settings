@@ -1,5 +1,5 @@
 ###############################################################################
-# Env settings
+# Shell Env settings
 ###############################################################################
 
 # Disable CTRL-D from closing my window with the terminator terminal emulator)
@@ -79,49 +79,27 @@ for ext in doc{,x} ppt{,x} xls{,x} key pdf png jp{,e}g htm{,l} m{,k}d markdown a
     alias -s $ext=open
 done
 
+# show type -a and which -a info together, very convenient!
+ta() {
+    # type buildin command can output which file the function is definded. COOL!
+    type -aS "$@" | coat
+
+    local func_info
+    # which buildin command can output the function implementation. COOL!
+    func_info=$(functions "$@")
+    [ -z "$func_info" ] || printf '\n%s\n' "$func_info" | rg '^\S*'
+}
+# Tab completion for aliased sub commands in zsh: alias gco='git checkout'
+# Reload auto completion
+#   zsh -f && autoload -Uz compinit && compinit
+# http://stackoverflow.com/questions/14307086
+compdef ta=type
+
 ### core utils ###
 
 # do NOT overwrite an existing file
 alias cp='cp -i'
 alias mv='mv -i'
-
-alias od='od -c -tx1 -tu1'
-
-export LESS="-RiXF"
-alias lev='LESS=-Ri less'
-
-alias -g A='| gawk'
-alias -g X='| gxargs'
-alias -g S='| gsort'
-alias -g C='| c'
-
-pt() {
-    pstree "$@" | coat -n
-}
-
-pts() {
-    pt -s "$@"
-}
-
-ptp() {
-    pt -p "${@:-$$}"
-}
-compdef ptp=kill
-ptpp() {
-    pt -p $PPID
-}
-
-function mdd() {
-    (($# != 1)) && {
-        errorEcho "require 1 argument, but got $*"
-        return 1
-    }
-    md "$1" && cd "$1"
-}
-alias du='du -h'
-alias nd='ncdu --confirm-quit --show-percent --show-itemcount --graph-style=half-block --color dark-bg'
-#alias df='command df -h'
-alias df='/bin/df -h | sort -k3,3h'
 
 if which lsd &> /dev/null; then
     unalias ls &> /dev/null
@@ -129,16 +107,22 @@ if which lsd &> /dev/null; then
 fi
 
 alias ll='ls -lh'
+
 unalias lsa
 alias lsa='ls -a'
-
-alias lld='ll -d'
-alias lsd='ls -d'
-alias lldf='ll --group-directories-first'
-alias lsdf='ls --group-directories-first'
-
+alias lla='ll -a'
 alias lsr='ls -r'
 alias llr='ll -r'
+
+alias lsd='ls -d'
+alias lsdt='ls -dtr'
+alias lld='ll -d'
+alias lldt='ll -dtr'
+
+alias lldf='ll --group-directories-first'
+alias lsdf='ls --group-directories-first'
+alias lsx='ls --group-directories-first -X'
+alias llx='ll --group-directories-first -X'
 
 # sort by size
 alias lss='ls -Sr'
@@ -153,35 +137,25 @@ alias llt='ll -tr'
 alias lsc='command ls --color=auto -t --time=creation -r'
 alias llc='command ls --color=auto -l -t --time=creation -r'
 
-alias lsx='ls --group-directories-first -X'
-alias llx='ll --group-directories-first -X'
-
 alias lt='ls --tree'
 alias ltl='ll --tree'
 
-# https://github.com/hyperupcall/autoenv
-AUTOENV_ENABLE_LEAVE=true
-AUTOENV_PRESERVE_CD=true
 
-__mzs_auto_env_chpwd_hook() {
-    [[ -z "$__mzs_in_auto_env_chpwd_hook" || $ZSH_SUBSHELL != 0 ]] || return
-    __mzs_in_auto_env_chpwd_hook=true
-
-    if [[ -n "$OLDPWD" && "$PWD" != "$OLDPWD" ]]; then
-        autoenv_init "$OLDPWD"
-    fi
-
-    unset __mzs_in_auto_env_chpwd_hook
+function mdd() {
+    (($# != 1)) && {
+        errorEcho "require 1 argument, but got $*"
+        return 1
+    }
+    md "$1" && cd "$1"
 }
-typeset -f autoenv_init >/dev/null && add-zsh-hook chpwd __mzs_auto_env_chpwd_hook
 
-# A smarter cd command.
-# https://github.com/ajeetdsouza/zoxide
-eval "$(zoxide init zsh --cmd j)"
 
-alias rr=ranger
-alias ff=spf
-alias y=yazi
+export LESS="-RiXF"
+alias lev='LESS=-Ri less'
+
+alias -g A='| gawk'
+alias -g X='| gxargs'
+alias -g S='| gsort'
 
 alias tailf='tail -f'
 alias btee='col -b | tee'
@@ -206,6 +180,8 @@ alias rga='rg -uuu'
 # --no-heading: standard grep-like format
 alias rgp='rg --no-heading'
 alias -g G='| rg'
+alias -g Gi='| rg -i'
+alias -g Gv='| rg -v'
 
 alias fdi='fd -i'
 alias fda='fd -HI'
@@ -219,21 +195,55 @@ alias tzst='tar --use-compress-program zstd -cvf'
 # http://www.commandlinefu.com/commands/view/4389
 # alias uq="awk '!x[\$0]++'"
 
-# show type -a and which -a info together, very convenient!
-ta() {
-    # type buildin command can output which file the function is definded. COOL!
-    type -aS "$@" | coat
+alias od='od -c -tx1 -tu1'
 
-    local func_info
-    # which buildin command can output the function implementation. COOL!
-    func_info=$(functions "$@")
-    [ -z "$func_info" ] || printf '\n%s\n' "$func_info" | rg '^\S*'
+alias df='/bin/df -h | sort -k3,3h'
+#alias df='command df -h'
+alias du='du -h'
+alias nd='ncdu --confirm-quit --show-percent --show-itemcount --graph-style=half-block --color dark-bg'
+
+
+### useful utils ###
+
+pt() {
+    pstree "$@" | coat -n
 }
-# Tab completion for aliased sub commands in zsh: alias gco='git checkout'
-# Reload auto completion
-#   zsh -f && autoload -Uz compinit && compinit
-# http://stackoverflow.com/questions/14307086
-compdef ta=type
+
+pts() {
+    pt -s "$@"
+}
+
+ptp() {
+    pt -p "${@:-$$}"
+}
+compdef ptp=kill
+ptpp() {
+    pt -p $PPID
+}
+
+# https://github.com/hyperupcall/autoenv
+AUTOENV_ENABLE_LEAVE=true
+AUTOENV_PRESERVE_CD=true
+
+__mzs_auto_env_chpwd_hook() {
+    [[ -z "$__mzs_in_auto_env_chpwd_hook" || $ZSH_SUBSHELL != 0 ]] || return
+    __mzs_in_auto_env_chpwd_hook=true
+
+    if [[ -n "$OLDPWD" && "$PWD" != "$OLDPWD" ]]; then
+        autoenv_init "$OLDPWD"
+    fi
+
+    unset __mzs_in_auto_env_chpwd_hook
+}
+typeset -f autoenv_init >/dev/null && add-zsh-hook chpwd __mzs_auto_env_chpwd_hook
+
+# A smarter cd command.
+# https://github.com/ajeetdsouza/zoxide
+eval "$(zoxide init zsh --cmd j)"
+
+alias rr=ranger
+alias ff=spf
+alias y=yazi
 
 ### editor ###
 
@@ -309,6 +319,8 @@ alias gvv4='col -b | gvim -c "set tabstop=4 | retab" -'
 alias gvw='gvim -R'
 alias gvd='gvim -d'
 alias -g GV='| gvim -'
+alias -g GV8='| gvim -c "set tabstop=8 | retab" -'
+alias -g GV8='| gvim -c "set tabstop=4 | retab" -'
 
 alias note='(cd ~/notes; gv)'
 
@@ -494,6 +506,7 @@ pp() {
         export http_proxy="$https_proxy" ftp_proxy="$https_proxy" all_proxy="$https_proxy"
         export HTTPS_PROXY="$https_proxy" HTTP_PROXY="$https_proxy" FTP_PROXY="$https_proxy" ALL_PROXY="$https_proxy"
         export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-DproxySet=true -DsocksProxyHost=127.0.0.1 -DsocksProxyPort=$port"
+        export NODE_USE_ENV_PROXY=1
         # use quoted command for eval, so can call alias
         printf -v quoted_command_for_eval '%q ' "$@"
         eval $quoted_command_for_eval
@@ -540,7 +553,13 @@ alias otv=octave-cli
 ### my utils ###
 
 alias cap='c ap'
-alias cbn='c basename'
+cbn() {
+   [ $# = 0 ] && set -- $PWD
+   c basename "$@"
+}
+alias cq='c -q'
+alias -g C='| c'
+alias -g Cq='| c -q'
 
 # print command Bin Path on env $PATH
 bp() {
@@ -551,7 +570,6 @@ bp() {
 }
 compdef bp=type
 
-alias cq='c -q'
 compdef coat=cat
 compdef taoc=tac
 alias awl=a2l

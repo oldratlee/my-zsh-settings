@@ -200,6 +200,8 @@ alias gcor="git checkout \$(gbt | awk -rF' +=> +' '/=>/{print \$2}' | tail -1)"
 # git reset/rebase
 
 alias grb='git rebase'
+alias grbi='git rebase --interactive --rebase-merges'
+alias grbii='git rebase --interactive'
 alias grs='git reset'
 alias grshd='git reset --hard'
 alias grsorigin='git reset --hard origin/$(git_current_branch)'

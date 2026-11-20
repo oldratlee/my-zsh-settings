@@ -234,12 +234,8 @@ dcs() {
 alias dcsq='dcs -q'
 
 
-alias sc='scala-cli --java-home /Users/jerry/.sdkman/candidates/java/17'
+alias sc=scala-cli
 alias scf='scala-cli fmt'
-# >>> scala-cli completions >>>
-fpath=("/Users/jerry/Library/Application Support/ScalaCli/completions/zsh" $fpath)
-compinit
-# <<< scala-cli completions <<<
 
 ###############################################################################
 # Maven
@@ -313,7 +309,7 @@ mci() {
 __mdep() {
     local goal="$1"
     shift
-    mvn org.apache.maven.plugins:maven-dependency-plugin:3.6.0:$goal "$@"
+    mvn org.apache.maven.plugins:maven-dependency-plugin:3.11.0:$goal "$@"
 }
 
 mdt() {
@@ -357,7 +353,7 @@ alias mdct='__mdep copy-dependencies -DincludeScope=test'
 
 # Check dependencies update
 mcv() {
-    local g goals=() versions_maven_plugin_version=2.16.2
+    local g goals=() versions_maven_plugin_version=2.25.1
     for g in display-dependency-updates display-plugin-updates display-property-updates; do
         goals+="org.codehaus.mojo:versions-maven-plugin:$versions_maven_plugin_version:$g"
     done
